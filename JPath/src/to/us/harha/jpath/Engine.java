@@ -22,7 +22,7 @@ public class Engine
 		m_frameTime = 1.0 / frameTime;
 		m_isRunning = false;
 		m_display = display;
-		m_tracer = new Tracer(4);
+		m_tracer = new Tracer(8);
 	}
 
 	public void start()
@@ -70,7 +70,7 @@ public class Engine
 
 				if (frameCounter >= 1.0)
 				{
-					LOG_CORE.printMsg("FPS: " + frames + " | # of Screens sampled: " + m_tracer.SAMPLESTAKEN.get() + " | Samples taken: " + m_tracer.SAMPLESTAKEN.get() * (m_display.getWidth() * m_display.getHeight()));
+					LOG_CORE.printMsg("FPS: " + frames + " | # of Screens sampled: " + m_tracer.SAMPLESTAKEN.get() + " | # of Pixels sampled: " + m_tracer.SAMPLESTAKEN.get() * (m_display.getWidth() * m_display.getHeight()));
 					frames = 0;
 					frameCounter = 0;
 				}
