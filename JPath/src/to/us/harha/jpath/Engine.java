@@ -29,14 +29,14 @@ public class Engine
      */
     public Engine(Display display, double frameTime, boolean debug)
     {
-        m_cpu_cores = Runtime.getRuntime().availableProcessors();
+        m_cpu_cores = Runtime.getRuntime().availableProcessors() * 2;
         m_log = new Logger(this.getClass().getName());
         m_log.printMsg("Engine instance has been started! # of Available CPU Cores: " + m_cpu_cores);
         m_frameTime = 1.0 / frameTime;
         m_debug = debug;
         m_isRunning = false;
         m_display = display;
-        m_tracer = new Tracer(m_display, 4, m_cpu_cores, m_debug);
+        m_tracer = new Tracer(m_display, 2, m_cpu_cores, m_debug);
         m_eService = Executors.newScheduledThreadPool(m_cpu_cores);
         if (m_cpu_cores >= 2)
             m_executors_finished = new boolean[(m_cpu_cores / 2) * (m_cpu_cores / 2)];
@@ -89,7 +89,7 @@ public class Engine
                 render = true;
                 unprocessedTime -= m_frameTime;
 
-                // update((float) m_frameTime);
+                update((float) m_frameTime);
 
                 if (frameCounter >= 1.0)
                 {
@@ -120,6 +120,14 @@ public class Engine
     }
 
     /*
+     * Main update method
+     */
+    private void update(float delta)
+    {
+        m_tracer.update(delta);
+    }
+
+    /*
      * Main render method
      */
     private void render()
@@ -132,7 +140,7 @@ public class Engine
         }
 
         // Only use multithreaded rendering if the amount of CPU cores is greater than 4
-        // This could and will be improved, my algorithms just won't split the screen
+        // This could and will be improved, my current algorithms just won't split the screen
         // correctly for lower than 4 cores
         if (m_cpu_cores >= 4)
         {

@@ -1,5 +1,7 @@
 package to.us.harha.jpath.util.math;
 
+import java.util.concurrent.ThreadLocalRandom;
+
 import to.us.harha.jpath.Main;
 
 public class Vec3f
@@ -110,7 +112,8 @@ public class Vec3f
 
     public static Vec3f normalize(Vec3f v)
     {
-        return new Vec3f(v.x / length(v), v.y / length(v), v.z / length(v));
+        float length = length(v);
+        return new Vec3f(v.x / length, v.y / length, v.z / length);
     }
 
     public static float length(Vec3f v)
@@ -166,10 +169,13 @@ public class Vec3f
 
     public static Vec3f randomHemisphere(Vec3f N)
     {
-        Vec3f R = normalize(new Vec3f(2.0f * Main.RNG.nextFloat() - 1.0f, 2.0f * Main.RNG.nextFloat() - 1.0f, 2.0f * Main.RNG.nextFloat() - 1.0f));
-        float NdotR = dot(N, R);
-        if (NdotR <= 0.0f)
-            return randomHemisphere(N);
+        Vec3f R;
+
+        do
+        {
+            R = normalize(new Vec3f(2.0f * ThreadLocalRandom.current().nextFloat() - 1.0f, 2.0f * ThreadLocalRandom.current().nextFloat() - 1.0f, 2.0f * ThreadLocalRandom.current().nextFloat() - 1.0f));
+        } while (dot(N, R) <= 0.0f);
+
         return R;
     }
 

@@ -4,9 +4,11 @@ import java.util.Arrays;
 import java.util.concurrent.atomic.AtomicIntegerArray;
 
 import to.us.harha.jpath.Display;
+import to.us.harha.jpath.Main;
 import to.us.harha.jpath.tracer.object.Material;
 import to.us.harha.jpath.tracer.object.TracerObject;
 import to.us.harha.jpath.util.Logger;
+import to.us.harha.jpath.util.MathUtils;
 import to.us.harha.jpath.util.math.Intersection;
 import to.us.harha.jpath.util.math.Primitive;
 import to.us.harha.jpath.util.math.Ray;
@@ -111,6 +113,7 @@ public class Tracer
                 int index_screen = x + y * display.getWidth();
                 int index_sample = xx + yy * width_portion;
 
+                // Draw lines to separate each section, for debugging purposes
                 if (m_debug)
                     if (xx == 0 || xx == width_portion || yy == 0 || yy == width_portion)
                         continue;
@@ -123,7 +126,6 @@ public class Tracer
                 m_samples[index_screen] = Vec3f.add(m_samples[index_screen], pathTrace(ray, 0));
 
                 display.drawPixelVec3fAveraged(index_screen, m_samples[index_screen], m_samples_taken.get(t));
-
             }
         }
     }
@@ -171,7 +173,7 @@ public class Tracer
         Material M = OBJECT.getMaterial();
 
         // If the object is a light source, return it's emittance
-        if (Vec3f.length(M.getEmittance()) > 0.0f)
+        if (Vec3f.length(M.getEmittance()) > 0.0f && iSectionFinal.getT() > Main.EPSILON)
             return M.getEmittance();
 
         // Get the intersection's info
@@ -219,6 +221,7 @@ public class Tracer
             color_final = Vec3f.add(color_final, Vec3f.add(M.getEmittance(), Vec3f.scale(BRDF, REFLECTED)));
         }
 
+        // Simple radiance clamping to avoid fireflies
         return color_final;
     }
 
@@ -228,6 +231,8 @@ public class Tracer
     public void clearSamples()
     {
         Arrays.fill(m_samples, new Vec3f());
+        for (int i = 0; i < m_samples_taken.length(); i++)
+            m_samples_taken.set(i, 0);
     }
 
     /*
