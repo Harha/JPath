@@ -19,18 +19,25 @@ public class Tracer
 	private Display				m_display;
 	private int					m_maxrecursion;
 	private int					m_cpu_cores;
+	private boolean				m_debug;
 	private Vec3f[]				m_samples;
 	private AtomicIntegerArray	m_samples_taken;
 	private Scene				m_scene;
 	private Logger				m_log;
 
-	public Tracer(Display display, int maxrecursion, int cpu_cores)
+	public Tracer(Display display, int maxrecursion, int cpu_cores, boolean debug)
 	{
 		m_display = display;
 		m_maxrecursion = maxrecursion;
 		m_cpu_cores = cpu_cores;
+		m_debug = debug;
 		m_samples = new Vec3f[display.getWidth() * display.getHeight()];
-		m_samples_taken = new AtomicIntegerArray((cpu_cores / 2) * (cpu_cores / 2));
+
+		if (m_cpu_cores >= 2)
+			m_samples_taken = new AtomicIntegerArray((cpu_cores / 2) * (cpu_cores / 2));
+		else
+			m_samples_taken = new AtomicIntegerArray(1);
+
 		m_scene = new Scene();
 		m_log = new Logger(this.getClass().getName());
 
@@ -105,19 +112,18 @@ public class Tracer
 				int index_screen = x + y * display.getWidth();
 				int index_sample = xx + yy * width_portion;
 
-				if (xx == 0 || xx == width_portion || yy == 0 || yy == width_portion)
-				{
-					// For debugging purposes, leave the borders of a rendered portion unrendered
-				} else
-				{
-					float x_norm = (x - width * 0.5f) / width * display.getAR();
-					float y_norm = (height * 0.5f - y) / height;
-					ray.setDir(Vec3f.normalize(new Vec3f(x_norm, y_norm, -1.0f)));
+				if (m_debug)
+					if (xx == 0 || xx == width_portion || yy == 0 || yy == width_portion)
+						continue;
 
-					m_samples[index_screen] = Vec3f.add(m_samples[index_screen], pathTrace(ray, 0));
+				display.drawPixelVec3f(x, y, new Vec3f(1.0f, 0.0f, 1.0f));
+				float x_norm = (x - width * 0.5f) / width * display.getAR();
+				float y_norm = (height * 0.5f - y) / height;
+				ray.setDir(Vec3f.normalize(new Vec3f(x_norm, y_norm, -1.0f)));
 
-					display.drawPixelVec3fAveraged(index_screen, m_samples[index_screen], m_samples_taken.get(t));
-				}
+				m_samples[index_screen] = Vec3f.add(m_samples[index_screen], pathTrace(ray, 0));
+
+				display.drawPixelVec3fAveraged(index_screen, m_samples[index_screen], m_samples_taken.get(t));
 
 			}
 		}
@@ -229,6 +235,14 @@ public class Tracer
 	public int getSamplesPerPixel(int index)
 	{
 		return m_samples_taken.get(index);
+	}
+
+	/*
+	 * Get the samples per pixel as an array
+	 */
+	public AtomicIntegerArray getSamplesPerPixel()
+	{
+		return m_samples_taken;
 	}
 
 }

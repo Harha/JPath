@@ -3,10 +3,8 @@ package to.us.harha.jpath;
 import java.awt.Graphics;
 import java.awt.image.BufferStrategy;
 import java.util.Arrays;
-import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
-import java.util.concurrent.Semaphore;
-import java.util.concurrent.TimeUnit;
+import java.util.concurrent.ScheduledExecutorService;
 
 import to.us.harha.jpath.tracer.Tracer;
 import to.us.harha.jpath.util.Logger;
@@ -14,32 +12,36 @@ import to.us.harha.jpath.util.TimeUtils;
 
 public class Engine
 {
-	private int				m_cpu_cores;
-	private double			m_frameTime;
-	private boolean			m_isRunning;
-	private Display			m_display;
-	private Tracer			m_tracer;
-	private Logger			m_log;
-	private ExecutorService	m_eService;
-	private boolean[]		m_executors_finished;
+	private int							m_cpu_cores;
+	private double						m_frameTime;
+	private boolean						m_debug;
+	private boolean						m_isRunning;
+	private Display						m_display;
+	private Tracer						m_tracer;
+	private Logger						m_log;
+	private ScheduledExecutorService	m_eService;
+	private boolean[]					m_executors_finished;
 
 	/*
 	 * Engine constructor
 	 * Display display: The chosen display
 	 * double frameTime: Maximum frames per second
 	 */
-	public Engine(Display display, double frameTime)
+	public Engine(Display display, double frameTime, boolean debug)
 	{
-		m_cpu_cores = Runtime.getRuntime().availableProcessors();
+		m_cpu_cores = Runtime.getRuntime().availableProcessors() / 1;
 		m_log = new Logger(this.getClass().getName());
 		m_log.printMsg("Engine instance has been started! # of Available CPU Cores: " + m_cpu_cores);
 		m_frameTime = 1.0 / frameTime;
+		m_debug = debug;
 		m_isRunning = false;
 		m_display = display;
-		m_tracer = new Tracer(m_display, 4, m_cpu_cores);
+		m_tracer = new Tracer(m_display, 4, m_cpu_cores, m_debug);
 		m_eService = Executors.newScheduledThreadPool(m_cpu_cores);
-		m_executors_finished = new boolean[(m_cpu_cores / 2) * (m_cpu_cores / 2)];
-
+		if (m_cpu_cores >= 2)
+			m_executors_finished = new boolean[(m_cpu_cores / 2) * (m_cpu_cores / 2)];
+		else
+			m_executors_finished = new boolean[1];
 		Arrays.fill(m_executors_finished, true);
 	}
 
@@ -91,7 +93,10 @@ public class Engine
 
 				if (frameCounter >= 1.0)
 				{
-					m_log.printMsg(m_eService.toString());
+					String eServiceInfo = m_eService.toString().replace("java.util.concurrent.ScheduledThreadPoolExecutor@", "ThreadExecutor @ ");
+					String cellInfo = m_tracer.getSamplesPerPixel().toString();
+					m_log.printMsg("# of samples taken / px per cell: " + cellInfo);
+					m_log.printMsg(eServiceInfo);
 					frames = 0;
 					frameCounter = 0;
 				}
