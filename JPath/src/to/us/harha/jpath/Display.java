@@ -13,171 +13,173 @@ import to.us.harha.jpath.util.math.Vec3f;
 
 public class Display extends Canvas
 {
-	private String			m_title;
-	private int				m_width;
-	private int				m_height;
-	private int				m_scale;
-	private int[]			m_pixels;
-	private BufferedImage	m_image;
-	private Dimension		m_dimension;
-	private JFrame			m_jframe;
+    private static final long serialVersionUID = -2770620342391742291L;
 
-	public Display(int width, int height, int scale, String title)
-	{
-		m_title = title;
-		m_width = width;
-		m_height = height;
-		m_scale = scale;
-	}
+    private String            m_title;
+    private int               m_width;
+    private int               m_height;
+    private int               m_scale;
+    private int[]             m_pixels;
+    private BufferedImage     m_image;
+    private Dimension         m_dimension;
+    private JFrame            m_jframe;
 
-	public void create()
-	{
-		// Create the bitmap
-		if (m_image == null)
-		{
-			m_image = new BufferedImage(m_width, m_height, BufferedImage.TYPE_INT_RGB);
-			m_pixels = ((DataBufferInt) m_image.getRaster().getDataBuffer()).getData();
-		}
+    public Display(int width, int height, int scale, String title)
+    {
+        m_title = title;
+        m_width = width;
+        m_height = height;
+        m_scale = scale;
+    }
 
-		// Create the jframe
-		if (m_jframe == null)
-		{
-			m_dimension = new Dimension(m_width * m_scale, m_height * m_scale);
-			setPreferredSize(m_dimension);
-			m_jframe = new JFrame();
-			m_jframe.setResizable(false);
-			m_jframe.setTitle(m_title);
-			m_jframe.add(this);
-			m_jframe.pack();
-			m_jframe.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
-			m_jframe.setLocationRelativeTo(null);
-			m_jframe.setVisible(true);
-		}
-	}
+    public void create()
+    {
+        // Create the bitmap
+        if (m_image == null)
+        {
+            m_image = new BufferedImage(m_width, m_height, BufferedImage.TYPE_INT_RGB);
+            m_pixels = ((DataBufferInt) m_image.getRaster().getDataBuffer()).getData();
+        }
 
-	public void clear()
-	{
-		Arrays.fill(m_pixels, 0x000000);
-	}
+        // Create the jframe
+        if (m_jframe == null)
+        {
+            m_dimension = new Dimension(m_width * m_scale, m_height * m_scale);
+            setPreferredSize(m_dimension);
+            m_jframe = new JFrame();
+            m_jframe.setResizable(false);
+            m_jframe.setTitle(m_title);
+            m_jframe.add(this);
+            m_jframe.pack();
+            m_jframe.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
+            m_jframe.setLocationRelativeTo(null);
+            m_jframe.setVisible(true);
+        }
+    }
 
-	public void drawPixelVec3fAveraged(int index, Vec3f v, int factor)
-	{
-		if (index < 0 || index > m_width * m_height)
-			return;
+    public void clear()
+    {
+        Arrays.fill(m_pixels, 0x000000);
+    }
 
-		Vec3f average = v = MathUtils.clamp(Vec3f.divide(v, factor), 0.0f, 1.0f);
+    public void drawPixelVec3fAveraged(int index, Vec3f v, int factor)
+    {
+        if (index < 0 || index > m_width * m_height)
+            return;
 
-		// Calculate the hexadecimal color from the vector parameters
-		long red = (long) (average.x * 255.0f);
-		long green = (long) (average.y * 255.0f);
-		long blue = (long) (average.z * 255.0f);
-		long hex_value = ((red << 16) | (green << 8) | blue);
+        Vec3f average = v = MathUtils.clamp(Vec3f.divide(v, factor), 0.0f, 1.0f);
 
-		m_pixels[index] = (int) hex_value;
-	}
+        // Calculate the hexadecimal color from the vector parameters
+        long red = (long) (average.x * 255.0f);
+        long green = (long) (average.y * 255.0f);
+        long blue = (long) (average.z * 255.0f);
+        long hex_value = ((red << 16) | (green << 8) | blue);
 
-	public void drawPixelVec3f(int x, int y, Vec3f v)
-	{
-		if (x < 0 || x > m_width || y < 0 || y > m_height)
-			return;
+        m_pixels[index] = (int) hex_value;
+    }
 
-		// Get the 2D index in the 1D array
-		int index = x + y * m_width;
+    public void drawPixelVec3f(int x, int y, Vec3f v)
+    {
+        if (x < 0 || x > m_width || y < 0 || y > m_height)
+            return;
 
-		// Calculate the hexadecimal color from the vector parameters
-		long red = (long) (v.x * 255.0f);
-		long green = (long) (v.y * 255.0f);
-		long blue = (long) (v.z * 255.0f);
-		long hex_value = ((red << 16) | (green << 8) | blue);
+        // Get the 2D index in the 1D array
+        int index = x + y * m_width;
 
-		m_pixels[index] = (int) hex_value;
-	}
+        // Calculate the hexadecimal color from the vector parameters
+        long red = (long) (v.x * 255.0f);
+        long green = (long) (v.y * 255.0f);
+        long blue = (long) (v.z * 255.0f);
+        long hex_value = ((red << 16) | (green << 8) | blue);
 
-	public void drawPixelInt(int x, int y, int color)
-	{
-		if (x < 0 || x >= m_width || y < 0 || y >= m_height)
-			return;
-		m_pixels[x + y * m_width] = color;
-	}
+        m_pixels[index] = (int) hex_value;
+    }
 
-	public int getWidth()
-	{
-		return m_width;
-	}
+    public void drawPixelInt(int x, int y, int color)
+    {
+        if (x < 0 || x >= m_width || y < 0 || y >= m_height)
+            return;
+        m_pixels[x + y * m_width] = color;
+    }
 
-	public int getHeight()
-	{
-		return m_height;
-	}
+    public int getWidth()
+    {
+        return m_width;
+    }
 
-	public int[] getPixels()
-	{
-		return m_pixels;
-	}
+    public int getHeight()
+    {
+        return m_height;
+    }
 
-	public BufferedImage getImage()
-	{
-		return m_image;
-	}
+    public int[] getPixels()
+    {
+        return m_pixels;
+    }
 
-	public Dimension getDimension()
-	{
-		return m_dimension;
-	}
+    public BufferedImage getImage()
+    {
+        return m_image;
+    }
 
-	public JFrame getJFrame()
-	{
-		return m_jframe;
-	}
+    public Dimension getDimension()
+    {
+        return m_dimension;
+    }
 
-	public float getAR()
-	{
-		return (float) m_width / (float) m_height;
-	}
+    public JFrame getJFrame()
+    {
+        return m_jframe;
+    }
 
-	public int getScale()
-	{
-		return m_scale;
-	}
+    public float getAR()
+    {
+        return (float) m_width / (float) m_height;
+    }
 
-	public void setTitle(String title)
-	{
-		m_jframe.setTitle(m_title + " " + title);
-	}
+    public int getScale()
+    {
+        return m_scale;
+    }
 
-	public void setWidth(int m_width)
-	{
-		this.m_width = m_width;
-	}
+    public void setTitle(String title)
+    {
+        m_jframe.setTitle(m_title + " " + title);
+    }
 
-	public void setHeight(int m_height)
-	{
-		this.m_height = m_height;
-	}
+    public void setWidth(int m_width)
+    {
+        this.m_width = m_width;
+    }
 
-	public void setPixels(int[] m_pixels)
-	{
-		this.m_pixels = m_pixels;
-	}
+    public void setHeight(int m_height)
+    {
+        this.m_height = m_height;
+    }
 
-	public void setImage(BufferedImage m_image)
-	{
-		this.m_image = m_image;
-	}
+    public void setPixels(int[] m_pixels)
+    {
+        this.m_pixels = m_pixels;
+    }
 
-	public void setDimension(Dimension m_dimension)
-	{
-		this.m_dimension = m_dimension;
-	}
+    public void setImage(BufferedImage m_image)
+    {
+        this.m_image = m_image;
+    }
 
-	public void setJFrame(JFrame m_jframe)
-	{
-		this.m_jframe = m_jframe;
-	}
+    public void setDimension(Dimension m_dimension)
+    {
+        this.m_dimension = m_dimension;
+    }
 
-	public void setScale(int m_scale)
-	{
-		this.m_scale = m_scale;
-	}
+    public void setJFrame(JFrame m_jframe)
+    {
+        this.m_jframe = m_jframe;
+    }
+
+    public void setScale(int m_scale)
+    {
+        this.m_scale = m_scale;
+    }
 
 }
