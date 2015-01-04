@@ -8,6 +8,7 @@ import java.util.Arrays;
 
 import javax.swing.JFrame;
 
+import to.us.harha.jpath.util.MathUtils;
 import to.us.harha.jpath.util.math.Vec3f;
 
 public class Display extends Canvas
@@ -57,6 +58,22 @@ public class Display extends Canvas
 	public void clear()
 	{
 		Arrays.fill(m_pixels, 0x000000);
+	}
+
+	public void drawPixelVec3fAveraged(int index, Vec3f v, int factor)
+	{
+		if (index < 0 || index > m_width * m_height)
+			return;
+
+		Vec3f average = v = MathUtils.clamp(Vec3f.divide(v, factor), 0.0f, 1.0f);
+
+		// Calculate the hexadecimal color from the vector parameters
+		long red = (long) (average.x * 255.0f);
+		long green = (long) (average.y * 255.0f);
+		long blue = (long) (average.z * 255.0f);
+		long hex_value = ((red << 16) | (green << 8) | blue);
+
+		m_pixels[index] = (int) hex_value;
 	}
 
 	public void drawPixelVec3f(int x, int y, Vec3f v)
@@ -117,7 +134,7 @@ public class Display extends Canvas
 	{
 		return (float) m_width / (float) m_height;
 	}
-	
+
 	public int getScale()
 	{
 		return m_scale;

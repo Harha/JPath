@@ -6,9 +6,9 @@ public class Main
 {
 
 	public static final String	TITLE	= "Java Path Tracer";
-	public static final int		WIDTH	= 1280 / 1;
-	public static final int		HEIGHT	= 720 / 1;
-	public static final int		SCALE	= 1;
+	public static final int		WIDTH	= 1280 / 4;
+	public static final int		HEIGHT	= 720 / 4;
+	public static final int		SCALE	= 2;
 
 	public static final float	EPSILON	= 1e-3f;
 

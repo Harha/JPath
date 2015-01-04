@@ -1,7 +1,5 @@
 package to.us.harha.jpath.util.math;
 
-import java.util.Random;
-
 import to.us.harha.jpath.Main;
 
 public class Vec3f
@@ -47,6 +45,20 @@ public class Vec3f
 		x = 0.0f;
 		y = 0.0f;
 		z = 0.0f;
+	}
+	
+	public void set(Vec3f v)
+	{
+		this.x = v.x;
+		this.y = v.y;
+		this.z = v.z;
+	}
+
+	public void set(float x, float y, float z)
+	{
+		this.x = x;
+		this.y = y;
+		this.z = z;
 	}
 
 	@Override
@@ -170,13 +182,6 @@ public class Vec3f
 	public static boolean equals(Vec3f v, Vec3f u)
 	{
 		return v.x == u.x && v.y == u.y && v.z == u.z;
-	}
-
-	public void set(float x, float y, float z)
-	{
-		this.x = x;
-		this.y = y;
-		this.z = z;
 	}
 
 	public static Vec3f randomHemisphere(Vec3f N)
