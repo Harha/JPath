@@ -140,6 +140,11 @@ public class Display extends Canvas
 		return m_scale;
 	}
 
+	public void setTitle(String title)
+	{
+		m_jframe.setTitle(m_title + " " + title);
+	}
+
 	public void setWidth(int m_width)
 	{
 		this.m_width = m_width;

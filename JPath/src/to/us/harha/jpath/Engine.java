@@ -2,8 +2,11 @@ package to.us.harha.jpath;
 
 import java.awt.Graphics;
 import java.awt.image.BufferStrategy;
+import java.util.Arrays;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
+import java.util.concurrent.Semaphore;
+import java.util.concurrent.TimeUnit;
 
 import to.us.harha.jpath.tracer.Tracer;
 import to.us.harha.jpath.util.Logger;
@@ -18,20 +21,26 @@ public class Engine
 	private Tracer			m_tracer;
 	private Logger			m_log;
 	private ExecutorService	m_eService;
+	private boolean[]		m_executors_finished;
 
+	/*
+	 * Engine constructor
+	 * Display display: The chosen display
+	 * double frameTime: Maximum frames per second
+	 */
 	public Engine(Display display, double frameTime)
 	{
 		m_cpu_cores = Runtime.getRuntime().availableProcessors();
-
 		m_log = new Logger(this.getClass().getName());
 		m_log.printMsg("Engine instance has been started! # of Available CPU Cores: " + m_cpu_cores);
-
 		m_frameTime = 1.0 / frameTime;
 		m_isRunning = false;
 		m_display = display;
 		m_tracer = new Tracer(m_display, 4, m_cpu_cores);
-		m_eService = Executors.newFixedThreadPool(m_cpu_cores);
+		m_eService = Executors.newScheduledThreadPool(m_cpu_cores);
+		m_executors_finished = new boolean[(m_cpu_cores / 2) * (m_cpu_cores / 2)];
 
+		Arrays.fill(m_executors_finished, true);
 	}
 
 	public void start()
@@ -51,6 +60,9 @@ public class Engine
 		m_isRunning = false;
 	}
 
+	/*
+	 * Main run loop
+	 */
 	private void run()
 	{
 		int frames = 0;
@@ -75,11 +87,11 @@ public class Engine
 				render = true;
 				unprocessedTime -= m_frameTime;
 
-				update((float) m_frameTime);
+				// update((float) m_frameTime);
 
 				if (frameCounter >= 1.0)
 				{
-					// FPS INFO HERE
+					m_log.printMsg(m_eService.toString());
 					frames = 0;
 					frameCounter = 0;
 				}
@@ -102,11 +114,17 @@ public class Engine
 		}
 	}
 
+	/*
+	 * Main update loop
+	 */
 	private void update(float delta)
 	{
-		m_tracer.update(delta);
+
 	}
 
+	/*
+	 * Main render loop
+	 */
 	private void render()
 	{
 		BufferStrategy bs = m_display.getBufferStrategy();
@@ -116,28 +134,82 @@ public class Engine
 			return;
 		}
 
-		m_tracer.incrementSampleCounter();
-
-		// This is just some quick code, everything will be changed and fixed, it's just really late atm
-		// and I want to get something that works at least in some way
-		if (m_cpu_cores < 4)
+		// Only use multithreaded rendering if the amount of CPU cores is greater than 4
+		// This could and will be improved, my algorithms just won't split the screen
+		// correctly for lower than 4 cores
+		if (m_cpu_cores >= 4)
 		{
-			m_tracer.render(m_display);
-		} else
-		{
-			for (int j = 0; j < m_cpu_cores / 2; j++)
+			// Get the state of all executor threads, only continue rendering if they are all finished
+			if (getExecutorsState() == true)
 			{
-				for (int i = 0; i < m_cpu_cores / 2; i++)
+				// Iterate through the horizontal column of cells
+				for (int j = 0; j < m_cpu_cores / 2; j++)
 				{
-					m_tracer.renderPortion(m_display, i, j);
+					// Iterate through the vertical row of cells
+					for (int i = 0; i < m_cpu_cores / 2; i++)
+					{
+						int x = i;
+						int y = j;
+
+						// Get the 1D index of the current chosen cell
+						int t = i + j * (m_cpu_cores / 2);
+
+						// Break out from the loop if the current chosen cell is still being rendered
+						if (getExecutorState(t) == false)
+							break;
+
+						// Execute a render task with a thread for a chosen cell
+						m_eService.execute(new Runnable()
+						{
+							@Override
+							public void run()
+							{
+								setExecutorState(t, false);
+								m_tracer.renderPortion(m_display, x, y);
+								setExecutorState(t, true);
+							}
+						});
+					}
 				}
 			}
+		} else
+		{
+			m_tracer.render(m_display);
 		}
 
 		Graphics g = bs.getDrawGraphics();
 		g.drawImage(m_display.getImage(), 0, 0, m_display.getWidth() * m_display.getScale(), m_display.getHeight() * m_display.getScale(), null);
 		g.dispose();
 		bs.show();
+	}
+
+	/*
+	 * Set the state of a cell @ index
+	 */
+	public synchronized void setExecutorState(int index, boolean state)
+	{
+		m_executors_finished[index] = state;
+	}
+
+	/*
+	 * Get the state of a cell @ index
+	 */
+	public boolean getExecutorState(int index)
+	{
+		return m_executors_finished[index];
+	}
+
+	/*
+	 * Get the state of all cells as a whole
+	 * Return true if all cells have been rendered
+	 * Otherwise, return false
+	 */
+	public boolean getExecutorsState()
+	{
+		for (boolean b : m_executors_finished)
+			if (!b)
+				return false;
+		return true;
 	}
 
 }

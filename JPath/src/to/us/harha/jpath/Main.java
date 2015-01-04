@@ -5,7 +5,7 @@ import java.util.Random;
 public class Main
 {
 
-	public static final String	TITLE	= "Java Path Tracer";
+	public static final String	TITLE	= "Path Tracer";
 	public static final int		WIDTH	= 1280 / 4;
 	public static final int		HEIGHT	= 720 / 4;
 	public static final int		SCALE	= 2;

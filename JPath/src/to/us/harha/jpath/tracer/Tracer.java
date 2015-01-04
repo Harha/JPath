@@ -2,6 +2,7 @@ package to.us.harha.jpath.tracer;
 
 import java.util.Arrays;
 import java.util.concurrent.atomic.AtomicInteger;
+import java.util.concurrent.atomic.AtomicIntegerArray;
 
 import to.us.harha.jpath.Display;
 import to.us.harha.jpath.tracer.object.Material;
@@ -15,13 +16,13 @@ import to.us.harha.jpath.util.math.Vec3f;
 public class Tracer
 {
 
-	private Display			m_display;
-	private int				m_maxrecursion;
-	private int				m_cpu_cores;
-	private Vec3f[]			m_samples;
-	private AtomicInteger	m_samples_taken;
-	private Scene			m_scene;
-	private Logger			m_log;
+	private Display				m_display;
+	private int					m_maxrecursion;
+	private int					m_cpu_cores;
+	private Vec3f[]				m_samples;
+	private AtomicIntegerArray	m_samples_taken;
+	private Scene				m_scene;
+	private Logger				m_log;
 
 	public Tracer(Display display, int maxrecursion, int cpu_cores)
 	{
@@ -29,13 +30,13 @@ public class Tracer
 		m_maxrecursion = maxrecursion;
 		m_cpu_cores = cpu_cores;
 		m_samples = new Vec3f[display.getWidth() * display.getHeight()];
-		m_samples_taken = new AtomicInteger();
+		m_samples_taken = new AtomicIntegerArray((cpu_cores / 2) * (cpu_cores / 2));
 		m_scene = new Scene();
 		m_log = new Logger(this.getClass().getName());
 
 		clearSamples();
 
-		m_log.printMsg("Tracer instance has been started, using " + m_cpu_cores + " CPU Cores!");
+		m_log.printMsg("Tracer instance has been started, using " + m_cpu_cores + " threads!");
 	}
 
 	public void update(float delta)
@@ -43,9 +44,14 @@ public class Tracer
 
 	}
 
-	// Single threaded rendering
+	/*
+	 * Render the whole screen at once
+	 * For single-threaded rendering
+	 */
 	public void render(Display display)
 	{
+		incrementSampleCounter(0);
+
 		float width = display.getWidth();
 		float height = display.getHeight();
 
@@ -62,15 +68,21 @@ public class Tracer
 
 				m_samples[index] = Vec3f.add(m_samples[index], pathTrace(ray, 0));
 
-				display.drawPixelVec3fAveraged(index, m_samples[index], m_samples_taken.get());
+				display.drawPixelVec3fAveraged(index, m_samples[index], m_samples_taken.get(0));
 			}
 		}
 	}
 
-	// Multithreaded rendering
+	/*
+	 * Render a chosen portion of the screen @ t1, t2
+	 * The size of one portion is (m_cpu_cores)^2
+	 * For multi-threaded rendering
+	 */
 	public void renderPortion(Display display, int t1, int t2)
 	{
 		int t = t1 + t2 * (m_cpu_cores / 2);
+
+		incrementSampleCounter(t);
 
 		if (t1 >= (m_cpu_cores / 2))
 			t1 = (m_cpu_cores / 2) - 1;
@@ -104,7 +116,7 @@ public class Tracer
 
 					m_samples[index_screen] = Vec3f.add(m_samples[index_screen], pathTrace(ray, 0));
 
-					display.drawPixelVec3fAveraged(index_screen, m_samples[index_screen], m_samples_taken.get());
+					display.drawPixelVec3fAveraged(index_screen, m_samples[index_screen], m_samples_taken.get(t));
 				}
 
 			}
@@ -195,14 +207,28 @@ public class Tracer
 		return color_final;
 	}
 
+	/*
+	 * Clear all taken samples by setting their value to [0.0, 0.0, 0.0]
+	 */
 	public void clearSamples()
 	{
 		Arrays.fill(m_samples, new Vec3f());
 	}
 
-	public void incrementSampleCounter()
+	/*
+	 * Increment a chosen sample counter by 1 @ index
+	 */
+	public void incrementSampleCounter(int index)
 	{
-		m_samples_taken.incrementAndGet();
+		m_samples_taken.incrementAndGet(index);
+	}
+
+	/*
+	 * Get the amount of samples taken per pixel of a chosen cell @ index
+	 */
+	public int getSamplesPerPixel(int index)
+	{
+		return m_samples_taken.get(index);
 	}
 
 }
