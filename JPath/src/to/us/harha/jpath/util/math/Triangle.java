@@ -5,10 +5,10 @@ import to.us.harha.jpath.Main;
 public class Triangle extends Primitive
 {
 
-	private Vec3f[]	m_vertices;
-	private Vec3f	m_edge_a;
-	private Vec3f	m_edge_b;
-	private Vec3f	m_norm;
+	private Vec3f[] m_vertices;
+	private Vec3f   m_edge_a;
+	private Vec3f   m_edge_b;
+	private Vec3f   m_norm;
 
 	public Triangle(Vec3f pos, Vec3f[] vertices)
 	{
@@ -25,7 +25,7 @@ public class Triangle extends Primitive
 		P = Vec3f.cross(r.getDir(), m_edge_b);
 		d = Vec3f.dot(m_edge_a, P);
 
-		if (d < Main.EPSILON)
+		if (d < 0.0f)
 			return null;
 
 		inv_d = 1.0f / d;

@@ -17,19 +17,20 @@ import to.us.harha.jpath.util.math.Vec3f;
 public class Tracer
 {
 	// Tracer variables and objects
-	private int					m_max_recursion;
-	private boolean				m_debug;
-	private Vec3f[]				m_samples;
-	private Scene				m_scene;
-	private Logger				m_log;
+	private int                m_max_recursion;
+	private boolean            m_debug;
+	private Vec3f[]            m_samples;
+	private Scene              m_scene;
+	private Camera             m_camera;
+	private Logger             m_log;
 
 	// Multithreading
-	private int					m_thread_amount;
-	private AtomicIntegerArray	m_samples_taken;
+	private int                m_thread_amount;
+	private AtomicIntegerArray m_samples_taken;
 
 	// Static constant objects to minimize object creation during tracing
-	private static final Vec3f	COLOR_BLACK	= new Vec3f();
-	private static final Vec3f	COLOR_DEBUG	= new Vec3f(1.0f, 0.0f, 1.0f);
+	private static final Vec3f COLOR_BLACK = new Vec3f();
+	private static final Vec3f COLOR_DEBUG = new Vec3f(1.0f, 0.0f, 1.0f);
 
 	public Tracer(int thread_amount, int max_recursion, int sample_amount, boolean debug)
 	{
@@ -47,6 +48,7 @@ public class Tracer
 		clearSamples();
 
 		m_scene = new Scene();
+		m_camera = m_scene.getCameras().get(0);
 
 		m_log.printMsg("Tracer instance has been initalized, using " + m_thread_amount + " threads!");
 	}
@@ -62,19 +64,19 @@ public class Tracer
 		float width = display.getWidth();
 		float height = display.getHeight();
 
-		Ray ray = new Ray(new Vec3f(0.0f, 2.5f, 13.0f), new Vec3f(0.0f, 0.0f, -1.0f));
 		for (int y = 0; y < display.getHeight(); y++)
 		{
 			for (int x = 0; x < display.getWidth(); x++)
 			{
 				int index = x + y * display.getWidth();
 
-				float x_norm = (x - width * 0.5f) / width * display.getAR();
-				float y_norm = (height * 0.5f - y) / height;
-				ray.setDir(Vec3f.normalize(new Vec3f(x_norm, y_norm, -1.0f)));
+				// Calculate the primary ray
+				Ray ray = Ray.calcCameraRay(m_camera, display.getWidth(), display.getHeight(), display.getAR(), x, y);
 
+				// Do the path tracing
 				m_samples[index] = Vec3f.add(m_samples[index], pathTrace(ray, 0));
 
+				// Draw the pixel
 				display.drawPixelVec3fAveraged(index, m_samples[index], m_samples_taken.get(0));
 			}
 		}
@@ -101,8 +103,6 @@ public class Tracer
 		int width_portion = display.getWidth() / (m_thread_amount / 2);
 		int height_portion = display.getHeight() / (m_thread_amount / 2);
 
-		Ray ray = new Ray(new Vec3f(0.0f, 2.5f, 13.0f), new Vec3f(0.0f, 0.0f, -1.0f));
-
 		for (int y = height_portion * t2; y < (height_portion * t2) + height_portion; y++)
 		{
 			for (int x = width_portion * t1; x < (width_portion * t1) + width_portion; x++)
@@ -122,13 +122,13 @@ public class Tracer
 					}
 				}
 
-				display.drawPixelVec3f(x, y, new Vec3f(1.0f, 0.0f, 1.0f));
-				float x_norm = (x - width * 0.5f) / width * display.getAR();
-				float y_norm = (height * 0.5f - y) / height;
-				ray.setDir(Vec3f.normalize(new Vec3f(x_norm, y_norm, -1.0f)));
+				// Calculate the primary ray
+				Ray ray = Ray.calcCameraRay(m_camera, display.getWidth(), display.getHeight(), display.getAR(), x, y);
 
+				// Do the path tracing
 				m_samples[index_screen] = Vec3f.add(m_samples[index_screen], pathTrace(ray, 0));
 
+				// Draw the pixel
 				display.drawPixelVec3fAveraged(index_screen, m_samples[index_screen], m_samples_taken.get(t));
 			}
 		}

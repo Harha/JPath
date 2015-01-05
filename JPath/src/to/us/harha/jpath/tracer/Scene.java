@@ -13,11 +13,15 @@ import to.us.harha.jpath.util.math.Vec3f;
 public class Scene
 {
 
-	private ArrayList<TracerObject>	m_objects;
+	private ArrayList<TracerObject> m_objects;
+	private ArrayList<Camera>       m_cameras;
 
 	public Scene()
 	{
 		m_objects = new ArrayList<TracerObject>();
+		m_cameras = new ArrayList<Camera>();
+
+		m_cameras.add(new Camera(new Vec3f(0.0f, 2.5f, 15.0f), new Vec3f(0.0f, 0.0f, -1.0f), new Vec3f(0.0f, 1.0f, 0.0f)));
 
 		Material mat_white_diffuse = new Material(new Vec3f(0.0f), new Vec3f(1.0f), 0.0f, 0.0f, 0.0f, 0.0f);
 		Material mat_white_diffuse_reflective = new Material(new Vec3f(0.0f), new Vec3f(0.25f, 0.5f, 1.0f), 0.25f, 0.0f, 0.0f, 0.0f);
@@ -40,7 +44,7 @@ public class Scene
 		Material mat_cyan_glass = new Material(new Vec3f(0.0f), new Vec3f(0.0f, 0.5f, 1.0f), 0.25f, 1.0f, 1.52f, 0.0f);
 		Material mat_black_glass = new Material(new Vec3f(0.0f), new Vec3f(), 0.25f, 1.0f, 1.52f, 0.0f);
 
-		Material mat_white_light = new Material(Vec3f.scale(new Vec3f(1.0f), 10.0f), new Vec3f());
+		Material mat_white_light = new Material(Vec3f.scale(new Vec3f(1.0f), 1.0f), new Vec3f());
 		Material mat_lime_light = new Material(Vec3f.scale(new Vec3f(0.5f, 1.0f, 0.0f), 16.0f), new Vec3f());
 		Material mat_orange_light = new Material(new Vec3f(2.5f, 0.5f, 0.0f), new Vec3f());
 		Material mat_cyan_light = new Material(Vec3f.scale(new Vec3f(0.25f, 0.5f, 1.0f), 16.0f), new Vec3f());
@@ -77,13 +81,9 @@ public class Scene
 		Primitive sphere_4 = new Sphere(new Vec3f(5.0f, 1.0f, 5.0f), 1.0f);
 		Primitive sphere_5 = new Sphere(new Vec3f(0.0f, 5.0f, -5.0f), 2.0f);
 		Primitive sphere_6 = new Sphere(new Vec3f(5.0f, 5.0f, -5.0f), 2.0f);
-		
-		Vec3f[] verts = new Vec3f[] {
-			new Vec3f(-8.0f, 0.0f, 0.0f),
-			new Vec3f(8.0f, 0.0f, 0.0f),
-			new Vec3f(0.0f, 8.0f, 0.0f)
-		};
-		
+
+		Vec3f[] verts = new Vec3f[] { new Vec3f(-8.0f, 0.0f, 0.0f), new Vec3f(0.0f, 0.0f, 0.0f), new Vec3f(-4.0f, 8.0f, 0.0f) };
+
 		Primitive triangle_test = new Triangle(new Vec3f(0.0f, 0.0f, 0.0f), verts);
 
 		Primitive floor_0 = new Plane(new Vec3f(0.0f, 0.0f, 0.0f), new Vec3f(0.0f, 1.0f, 0.0f));
@@ -104,8 +104,8 @@ public class Scene
 		obj_white_diffuse_reflective.addPrimitive(sphere_4);
 		obj_blue_diffuse.addPrimitive(wall_3);
 		// obj_white_diffuse.addPrimitive(ceiling_0);
-		obj_white_diffuse.addPrimitive(ceiling_0);
-		obj_white_light.addPrimitive(sphere_light_0);
+		obj_white_light.addPrimitive(ceiling_0);
+		// obj_white_light.addPrimitive(sphere_light_0);
 		// obj_lime_light.addPrimitive(sphere_light_1);
 		// obj_white_light.addPrimitive(sphere_light_2);
 		// obj_white_light.addPrimitive(sphere_light_3);
@@ -149,9 +149,19 @@ public class Scene
 		return m_objects;
 	}
 
+	public ArrayList<Camera> getCameras()
+	{
+		return m_cameras;
+	}
+
 	public void setObjects(ArrayList<TracerObject> m_objects)
 	{
 		this.m_objects = m_objects;
+	}
+
+	public void setCameras(ArrayList<Camera> m_cameras)
+	{
+		this.m_cameras = m_cameras;
 	}
 
 }

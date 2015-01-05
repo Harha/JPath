@@ -13,18 +13,18 @@ import to.us.harha.jpath.util.TimeUtils;
 public class Engine
 {
 	// Engine variables and objects
-	private double						m_frameTime;
-	private boolean						m_debug;
-	private boolean						m_isRunning;
-	private Display						m_display;
-	private Logger						m_log;
-	private Tracer						m_tracer;
+	private double                   m_frameTime;
+	private boolean                  m_debug;
+	private boolean                  m_isRunning;
+	private Display                  m_display;
+	private Logger                   m_log;
+	private Tracer                   m_tracer;
 
 	// Multithreading
-	private int							m_cpu_cores;
-	private int							m_max_threads;
-	private ScheduledExecutorService	m_eService;
-	private boolean[]					m_executors_finished;
+	private int                      m_cpu_cores;
+	private int                      m_max_threads;
+	private ScheduledExecutorService m_eService;
+	private boolean[]                m_executors_finished;
 
 	/*
 	 * Engine constructor
@@ -59,26 +59,6 @@ public class Engine
 		// Create the final tracer object
 		m_tracer = new Tracer(m_max_threads, max_recursion, m_display.getWidth() * m_display.getHeight(), m_debug);
 	}
-
-	/*
-	public Engine(Display display, double frameTime, boolean debug)
-	{
-		m_log = new Logger(this.getClass().getName());
-		m_cpu_cores = Runtime.getRuntime().availableProcessors();
-		m_log.printMsg("Engine instance has been started! # of Available CPU Cores: " + m_cpu_cores);
-		m_frameTime = 1.0 / frameTime;
-		m_debug = debug;
-		m_isRunning = false;
-		m_display = display;
-		m_tracer = new Tracer(m_display, 8, m_cpu_cores, m_debug);
-		m_eService = Executors.newScheduledThreadPool(m_cpu_cores);
-		if (m_cpu_cores >= 2)
-			m_executors_finished = new boolean[(m_cpu_cores / 2) * (m_cpu_cores / 2)];
-		else
-			m_executors_finished = new boolean[1];
-		Arrays.fill(m_executors_finished, true);
-	}
-	*/
 
 	public void start()
 	{
