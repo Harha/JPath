@@ -34,7 +34,7 @@ public class Engine
 	 * boolean debug: Render debug info on screen or not?
 	 * int max_recursion: Maximum recursion depth in path tracing
 	 */
-	public Engine(Display display, int max_threads, double max_fps, boolean debug, int max_recursion)
+	public Engine(Display display, int max_threads, double max_fps, int max_recursion, boolean supersampling, boolean debug)
 	{
 		m_isRunning = false;
 		m_log = new Logger(this.getClass().getName());
@@ -57,7 +57,7 @@ public class Engine
 		Arrays.fill(m_executors_finished, true);
 
 		// Create the final tracer object
-		m_tracer = new Tracer(m_max_threads, max_recursion, m_display.getWidth() * m_display.getHeight(), m_debug);
+		m_tracer = new Tracer(m_max_threads, max_recursion, m_display.getWidth() * m_display.getHeight(), supersampling, 4, Main.EPSILON, m_debug);
 	}
 
 	public void start()

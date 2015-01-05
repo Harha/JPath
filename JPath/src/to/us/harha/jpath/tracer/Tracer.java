@@ -24,6 +24,11 @@ public class Tracer
 	private Camera             m_camera;
 	private Logger             m_log;
 
+	// Antialiasing
+	private boolean            m_supersampling;
+	private int                m_supersampling_amount;
+	private float              m_supersampling_jitter;
+
 	// Multithreading
 	private int                m_thread_amount;
 	private AtomicIntegerArray m_samples_taken;
@@ -32,12 +37,15 @@ public class Tracer
 	private static final Vec3f COLOR_BLACK = new Vec3f();
 	private static final Vec3f COLOR_DEBUG = new Vec3f(1.0f, 0.0f, 1.0f);
 
-	public Tracer(int thread_amount, int max_recursion, int sample_amount, boolean debug)
+	public Tracer(int thread_amount, int max_recursion, int sample_amount, boolean supersampling, int supersampling_amount, float supersampling_jitter, boolean debug)
 	{
 		m_log = new Logger(this.getClass().getName());
 		m_thread_amount = thread_amount;
 		m_max_recursion = max_recursion;
 		m_samples = new Vec3f[sample_amount];
+		m_supersampling = supersampling;
+		m_supersampling_amount = supersampling_amount;
+		m_supersampling_jitter = supersampling_jitter;
 		m_debug = debug;
 
 		if (m_thread_amount > 1)
@@ -134,11 +142,35 @@ public class Tracer
 					}
 				}
 
-				// Calculate the primary ray
-				Ray ray = Ray.calcCameraRay(m_camera, display.getWidth(), display.getHeight(), display.getAR(), x, y);
+				// Supersample each pixel if demanded
+				if (m_supersampling)
+				{
+					Vec3f sample = COLOR_BLACK;
 
-				// Do the path tracing
-				m_samples[index_screen] = Vec3f.add(m_samples[index_screen], pathTrace(ray, 0));
+					// Sample the pixels n times
+					for (int i = 0; i < m_supersampling_amount; i++)
+					{
+						// Calculate the randomized primary ray
+						Ray ray = Ray.calcSupersampledCameraRay(m_camera, display.getWidth(), display.getHeight(), display.getAR(), x, y, m_supersampling_jitter);
+
+						// Do the path tracing
+						sample = Vec3f.add(sample, pathTrace(ray, 0));
+					}
+
+					// Get the average color of the sample
+					Vec3f sample_averaged = Vec3f.divide(sample, m_supersampling_amount);
+
+					// Add the averaged sample to the samples
+					m_samples[index_screen] = Vec3f.add(m_samples[index_screen], sample_averaged);
+
+				} else
+				{
+					// Calculate the primary ray
+					Ray ray = Ray.calcCameraRay(m_camera, display.getWidth(), display.getHeight(), display.getAR(), x, y);
+
+					// Do the path tracing
+					m_samples[index_screen] = Vec3f.add(m_samples[index_screen], pathTrace(ray, 0));
+				}
 
 				// Draw the pixel
 				display.drawPixelVec3fAveraged(index_screen, m_samples[index_screen], m_samples_taken.get(t));
