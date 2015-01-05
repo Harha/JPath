@@ -57,7 +57,7 @@ public class Engine
 		Arrays.fill(m_executors_finished, true);
 
 		// Create the final tracer object
-		m_tracer = new Tracer(m_max_threads, max_recursion, m_display.getWidth() * m_display.getHeight(), supersampling, 4, Main.EPSILON, m_debug);
+		m_tracer = new Tracer(m_max_threads, max_recursion, m_display.getWidth() * m_display.getHeight(), supersampling, 8, Main.EPSILON * 2.5f, m_debug);
 	}
 
 	public void start()

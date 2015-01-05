@@ -179,4 +179,28 @@ public class Vec3f
 		return R;
 	}
 
+	public float getComponent(int i, float w)
+	{
+		if (i == 0)
+			return this.x;
+		else if (i == 1)
+			return this.y;
+		else if (i == 2)
+			return this.z;
+		else if (i == 3)
+			return w;
+		else
+			return 0.0f;
+	}
+
+	public void setComponent(int i, float value)
+	{
+		if (i == 0)
+			this.x = value;
+		else if (i == 1)
+			this.y = value;
+		else if (i == 2)
+			this.z = value;
+	}
+
 }

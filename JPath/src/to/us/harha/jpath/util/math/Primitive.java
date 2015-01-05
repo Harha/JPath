@@ -1,15 +1,21 @@
 package to.us.harha.jpath.util.math;
 
+import java.util.Arrays;
+
 public class Primitive
 {
 
-	protected Vec3f m_pos;
-	protected Vec3f m_transformed_pos;
+	protected Vec3f[] m_vertices;
 
 	public Primitive(Vec3f pos)
 	{
-		m_pos = pos;
-		m_transformed_pos = m_pos;
+		m_vertices = new Vec3f[1];
+		m_vertices[0] = pos;
+	}
+
+	public Primitive(Vec3f[] vertices)
+	{
+		m_vertices = vertices;
 	}
 
 	public Intersection intersect(Ray r)
@@ -17,24 +23,24 @@ public class Primitive
 		return null;
 	}
 
-	public Vec3f getPos()
+	public Vec3f[] getVertices()
 	{
-		return m_pos;
+		return m_vertices;
 	}
 
-	public Vec3f getTransformedPos()
+	public Vec3f getVertex(int i)
 	{
-		return m_transformed_pos;
+		return m_vertices[i];
 	}
 
-	public void setPos(Vec3f m_pos)
+	public void setVertices(Vec3f[] m_vertices)
 	{
-		this.m_pos = m_pos;
+		this.m_vertices = m_vertices;
 	}
 
-	public void setTransformedPos(Vec3f m_transformed_pos)
+	public void setVertex(int i, Vec3f vertex)
 	{
-		this.m_transformed_pos = m_transformed_pos;
+		m_vertices[i] = vertex;
 	}
 
 }

@@ -4,16 +4,13 @@ import to.us.harha.jpath.Main;
 
 public class Triangle extends Primitive
 {
+	private Vec3f m_edge_a;
+	private Vec3f m_edge_b;
+	private Vec3f m_norm;
 
-	private Vec3f[] m_vertices;
-	private Vec3f   m_edge_a;
-	private Vec3f   m_edge_b;
-	private Vec3f   m_norm;
-
-	public Triangle(Vec3f pos, Vec3f[] vertices)
+	public Triangle(Vec3f[] vertices)
 	{
-		super(pos);
-		m_vertices = vertices;
+		super(vertices);
 		calcNormal();
 	}
 
@@ -29,7 +26,7 @@ public class Triangle extends Primitive
 			return null;
 
 		inv_d = 1.0f / d;
-		T = Vec3f.sub(r.getPos(), Vec3f.add(m_transformed_pos, m_vertices[0]));
+		T = Vec3f.sub(r.getPos(), m_vertices[0]);
 		u = Vec3f.dot(T, P) * inv_d;
 
 		if (u < 0.0f || u > 1.0f)

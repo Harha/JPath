@@ -125,9 +125,15 @@ public class Mat4f
 	{
 		Vec3f result = new Vec3f();
 		
-		result.x = (left.m[0][0] * right.x) + (left.m[0][1] * right.y) + (left.m[0][2] * right.z) + (left.m[0][3] * w);
-		result.y = (left.m[1][0] * right.x) + (left.m[1][1] * right.y) + (left.m[1][2] * right.z) + (left.m[1][3] * w);
-		result.z = (left.m[2][0] * right.x) + (left.m[2][1] * right.y) + (left.m[2][2] * right.z) + (left.m[2][3] * w);
+		for (int i = 0; i < 4; i++)
+		{
+			float value = 0.0f;
+			for (int j = 0; j < 4; j++)
+			{
+				value += left.m[i][j] * right.getComponent(j, w);
+			}
+			result.setComponent(i, value);
+		}
 		
 		return result;
 	}

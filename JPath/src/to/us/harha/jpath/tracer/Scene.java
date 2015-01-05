@@ -23,7 +23,7 @@ public class Scene
 		m_objects = new ArrayList<TracerObject>();
 		m_cameras = new ArrayList<Camera>();
 
-		m_cameras.add(new Camera(new Vec3f(8.0f, 2.5f, 8.0f), new Vec3f(-0.5f, -0.1f, -0.5f), new Vec3f(0.0f, 1.0f, 0.0f)));
+		m_cameras.add(new Camera(new Vec3f(0.0f, 4.0f, 15.0f), new Vec3f(0.0f, 0.0f, -1.0f), new Vec3f(0.0f, 1.0f, 0.0f)));
 
 		Mesh mesh_lamp = new Mesh("lamp.obj");
 		Mesh mesh_cube = new Mesh("cube.obj");
@@ -44,26 +44,28 @@ public class Scene
 		TracerObject obj_green_diffuse = new TracerObject(mat_green_diffuse);
 		TracerObject obj_blue_diffuse = new TracerObject(mat_blue_diffuse);
 		TracerObject obj_black_mirror = new TracerObject(mat_black_mirror);
-		TracerObject obj_cube = new TracerObject(mesh_cube.getPrimitives(), mat_cyan, new Transform(new Vec3f(0.0f, 1.0f, 0.0f), new Vec3f(1.0f), new Vec3f(1.0f)));
+		TracerObject obj_cube = new TracerObject(mesh_cube.getPrimitives(), mat_white_diffuse, new Transform(new Vec3f(-2.0f, 1.0f, 3.0f), new Vec3f(0.0f), new Vec3f(1.0f)));
 		TracerObject obj_tetrahedron = new TracerObject(mesh_tetrahedron.getPrimitives(), mat_black_mirror, new Transform(new Vec3f(0.0f, 0.0f, 0.0f), new Vec3f(0.0f), new Vec3f(1.0f)));
 		TracerObject obj_torusknot = new TracerObject(mesh_torusknot.getPrimitives(), mat_black_glass, new Transform(new Vec3f(-2.5f, 2.0f, 5.0f), new Vec3f(0.0f), new Vec3f(1.0f)));
 		TracerObject obj_black_glass = new TracerObject(mat_black_glass);
 		TracerObject obj_white_light = new TracerObject(mesh_lamp.getPrimitives(), mat_white_light, new Transform(new Vec3f(0.0f, 8.0f, 0.0f), new Vec3f(0.0f), new Vec3f(1.0f)));
 
-		Primitive sphere_0 = new Sphere(new Vec3f(-3.75f, 1.0f, 5.0f), 1.0f);
+		Primitive sphere_0 = new Sphere(new Vec3f(2.0f, 1.0f, 5.0f), 1.0f);
+		Primitive sphere_1 = new Sphere(new Vec3f(1.0f, 1.0f, -1.0f), 1.0f);
 
 		Primitive floor_0 = new Plane(new Vec3f(0.0f, 0.0f, 0.0f), new Vec3f(0.0f, 1.0f, 0.0f));
 		Primitive ceiling_0 = new Plane(new Vec3f(0.0f, 8.0f, 0.0f), new Vec3f(0.0f, -1.0f, 0.0f));
-		Primitive wall_0 = new Plane(new Vec3f(0.0f, 0.0f, -16.0f), new Vec3f(0.0f, 0.0f, 1.0f));
+		Primitive wall_0 = new Plane(new Vec3f(0.0f, 0.0f, -4.0f), new Vec3f(0.0f, 0.0f, 1.0f));
 		Primitive wall_1 = new Plane(new Vec3f(0.0f, 0.0f, 16.0f), new Vec3f(0.0f, 0.0f, -1.0f));
-		Primitive wall_2 = new Plane(new Vec3f(-8.0f, 0.0f, 0.0f), new Vec3f(1.0f, 0.0f, 0.0f));
-		Primitive wall_3 = new Plane(new Vec3f(8.0f, 0.0f, 0.0f), new Vec3f(-1.0f, 0.0f, 0.0f));
+		Primitive wall_2 = new Plane(new Vec3f(-4.0f, 0.0f, 0.0f), new Vec3f(1.0f, 0.0f, 0.0f));
+		Primitive wall_3 = new Plane(new Vec3f(4.0f, 0.0f, 0.0f), new Vec3f(-1.0f, 0.0f, 0.0f));
 
 		obj_white_diffuse.addPrimitive(floor_0);
 		obj_white_diffuse.addPrimitive(ceiling_0);
 		obj_white_diffuse.addPrimitive(wall_1);
 		obj_white_diffuse.addPrimitive(wall_0);
 		obj_red_diffuse.addPrimitive(wall_2);
+		obj_black_mirror.addPrimitive(sphere_1);
 		obj_black_glass.addPrimitive(sphere_0);
 		obj_blue_diffuse.addPrimitive(wall_3);
 		m_objects.add(obj_white_diffuse);
@@ -71,6 +73,7 @@ public class Scene
 		m_objects.add(obj_green_diffuse);
 		m_objects.add(obj_blue_diffuse);
 		m_objects.add(obj_cube);
+		m_objects.add(obj_black_mirror);
 		m_objects.add(obj_black_glass);
 		m_objects.add(obj_white_light);
 	}

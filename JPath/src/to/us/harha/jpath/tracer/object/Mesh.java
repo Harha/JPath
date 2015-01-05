@@ -84,7 +84,7 @@ public class Mesh
 				Vec3f vertex_2 = new Vec3f(vertices.get(0 + index_1 * 3), vertices.get(1 + index_1 * 3), vertices.get(2 + index_1 * 3));
 				Vec3f vertex_3 = new Vec3f(vertices.get(0 + index_2 * 3), vertices.get(1 + index_2 * 3), vertices.get(2 + index_2 * 3));
 				Vec3f[] verts = new Vec3f[] { vertex_1, vertex_2, vertex_3 };
-				m_primitives.add(new Triangle(new Vec3f(0.0f, 0.0f, 0.0f), verts));
+				m_primitives.add(new Triangle(verts));
 			}
 
 			Main.LOG.printMsg("Mesh " + MODELFILEPATH + fileName + " loaded succesfully!");
