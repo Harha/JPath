@@ -106,6 +106,8 @@ public class Engine
 				render = true;
 				unprocessedTime -= m_frameTime;
 
+				update((float) m_frameTime);
+
 				if (frameCounter >= 1.0)
 				{
 					String eServiceInfo = m_eService.toString().replace("java.util.concurrent.ScheduledThreadPoolExecutor@", "ThreadExecutor @ ");
@@ -132,6 +134,14 @@ public class Engine
 				}
 			}
 		}
+	}
+
+	/*
+	 * Main update method
+	 */
+	private void update(float delta)
+	{
+		m_tracer.update(delta);
 	}
 
 	/*

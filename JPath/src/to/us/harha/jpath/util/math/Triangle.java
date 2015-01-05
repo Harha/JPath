@@ -29,7 +29,7 @@ public class Triangle extends Primitive
 			return null;
 
 		inv_d = 1.0f / d;
-		T = Vec3f.sub(r.getPos(), m_vertices[0]);
+		T = Vec3f.sub(r.getPos(), Vec3f.add(m_transformed_pos, m_vertices[0]));
 		u = Vec3f.dot(T, P) * inv_d;
 
 		if (u < 0.0f || u > 1.0f)

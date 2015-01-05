@@ -19,7 +19,7 @@ public class Plane extends Primitive
         Vec3f P;
         float d, t;
 
-        P = Vec3f.sub(m_pos, r.getPos());
+        P = Vec3f.sub(m_transformed_pos, r.getPos());
         d = Vec3f.dot(m_norm, r.getDir());
         t = Vec3f.dot(P, m_norm) / d;
 

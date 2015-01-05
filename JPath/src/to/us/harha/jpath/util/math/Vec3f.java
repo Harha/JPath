@@ -52,7 +52,7 @@ public class Vec3f
 	@Override
 	public String toString()
 	{
-		return "Vec2f[" + x + ", " + y + ", " + z + "]";
+		return "Vec3f[" + x + ", " + y + ", " + z + "]";
 	}
 
 	public static Vec3f lerp(Vec3f v, Vec3f u, float lerpFactor)

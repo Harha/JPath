@@ -54,6 +54,18 @@ public class Tracer
 	}
 
 	/*
+	 * Update the scene
+	 */
+	public void update(float delta)
+	{
+		for (TracerObject o : m_scene.getObjects())
+		{
+			if (!o.getPrimitives().isEmpty())
+				o.updateTransform();
+		}
+	}
+
+	/*
 	 * Render the whole screen at once
 	 * For single-threaded rendering
 	 */
