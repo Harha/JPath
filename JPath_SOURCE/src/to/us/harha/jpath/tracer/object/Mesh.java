@@ -4,6 +4,7 @@ import java.io.BufferedReader;
 import java.io.FileReader;
 import java.util.ArrayList;
 
+import to.us.harha.jpath.Config;
 import to.us.harha.jpath.Main;
 import to.us.harha.jpath.util.DataUtils;
 import to.us.harha.jpath.util.math.Primitive;
@@ -14,8 +15,6 @@ public class Mesh
 {
 
 	private ArrayList<Primitive> m_primitives;
-
-	private static final String  MODELFILEPATH = "./res/models/";
 
 	public Mesh(String fileName)
 	{
@@ -42,7 +41,7 @@ public class Mesh
 
 		try
 		{
-			meshReader = new BufferedReader(new FileReader(MODELFILEPATH + fileName));
+			meshReader = new BufferedReader(new FileReader(Config.MODEL_PATH + fileName));
 			String line;
 
 			while ((line = meshReader.readLine()) != null)
@@ -87,7 +86,7 @@ public class Mesh
 				m_primitives.add(new Triangle(verts));
 			}
 
-			Main.LOG.printMsg("Mesh " + MODELFILEPATH + fileName + " loaded succesfully!");
+			Main.LOG.printMsg("Mesh " + Config.MODEL_PATH + fileName + " loaded succesfully!");
 
 		} catch (Exception e)
 		{

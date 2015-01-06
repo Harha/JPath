@@ -134,6 +134,25 @@ public class Vec3f
 		return Vec3f.add(Vec3f.add(Vec3f.cross(v, Vec3f.scale(axis, sinAngle)), Vec3f.scale(v, cosAngle)), Vec3f.scale(axis, Vec3f.dot(v, Vec3f.scale(axis, 1.0f - cosAngle))));
 	}
 
+	public static Vec3f rotateTowards(Vec3f v, Vec3f w)
+	{
+		float dot = w.z;
+
+		// No rotation needed
+		if (dot > 0.9999f)
+			return v;
+
+		// Mirror along the z-axis
+		if (dot < -0.9999f)
+			return new Vec3f(v.x, v.y, -v.z);
+
+		Vec3f up = new Vec3f(0.0f, 0.0f, 1.0f);
+		Vec3f a1 = normalize(cross(up, w));
+		Vec3f a2 = normalize(cross(a1, w));
+
+		return normalize(add(add(scale(a1, v.x), scale(a2, v.y)), scale(w, v.z)));
+	}
+
 	public static Vec3f reflect(Vec3f I, Vec3f N)
 	{
 		return sub(I, Vec3f.scale(scale(N, dot(N, I)), 2.0f));
@@ -167,6 +186,19 @@ public class Vec3f
 		return normalize(sub(temp_a, temp_b));
 	}
 
+	// Spherical coordinates!! D:
+	public static Vec3f randomHemisphere(Vec3f N)
+	{
+		float phi = ThreadLocalRandom.current().nextFloat() * (float) (2.0 * Math.PI);
+		float rq = ThreadLocalRandom.current().nextFloat();
+		float r = (float) Math.sqrt(rq);
+
+		Vec3f V = Vec3f.normalize(new Vec3f((float) Math.cos(phi) * r, (float) Math.sin(phi) * r, (float) Math.sqrt((1.0f - rq))));
+
+		return rotateTowards(V, N);
+	}
+
+	/*
 	public static Vec3f randomHemisphere(Vec3f N)
 	{
 		Vec3f R;
@@ -178,6 +210,7 @@ public class Vec3f
 
 		return R;
 	}
+	*/
 
 	public float getComponent(int i, float w)
 	{

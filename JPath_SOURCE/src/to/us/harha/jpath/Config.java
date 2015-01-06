@@ -14,7 +14,11 @@ public class Config
 {
 
 	public static final String CONFIG_PATH = "./res/jpath.cfg";
+	public static final String MODEL_PATH  = "./res/models/";
 
+	public static int          window_width;
+	public static int          window_height;
+	public static int          window_scale;
 	public static boolean      debug_enabled;
 	public static boolean      saving_enabled;
 	public static int          max_recursion;
@@ -55,6 +59,9 @@ public class Config
 			o = new FileOutputStream(CONFIG_PATH);
 
 			// Set each variable
+			p.setProperty("window_width", "256");
+			p.setProperty("window_height", "256");
+			p.setProperty("window_scale", "2");
 			p.setProperty("debug_enabled", "true");
 			p.setProperty("saving_enabled", "false");
 			p.setProperty("max_recursion", "4");
@@ -75,7 +82,7 @@ public class Config
 			LOG.printMsg(CONFIG_PATH + " Created succesfully!");
 		} catch (IOException e)
 		{
-			Main.LOG.printErr("Couldn't create the main configuration file, closing program...");
+			LOG.printErr("Couldn't create the main configuration file, closing program...");
 			System.exit(1);
 		}
 	}
@@ -92,6 +99,9 @@ public class Config
 			p.load(i);
 
 			// Get the properties and set the config variables
+			window_width = Integer.valueOf(p.getProperty("window_width"));
+			window_height = Integer.valueOf(p.getProperty("window_height"));
+			window_scale = Integer.valueOf(p.getProperty("window_scale"));
 			debug_enabled = Boolean.valueOf(p.getProperty("debug_enabled"));
 			saving_enabled = Boolean.valueOf(p.getProperty("saving_enabled"));
 			max_recursion = Integer.valueOf(p.getProperty("max_recursion"));
@@ -109,7 +119,7 @@ public class Config
 			LOG.printMsg(CONFIG_PATH + " loaded succesfully!");
 		} catch (IOException e)
 		{
-			Main.LOG.printErr("Couldn't load the main configuration file, closing program...");
+			LOG.printErr("Couldn't load the main configuration file, closing program...");
 			System.exit(1);
 		}
 	}

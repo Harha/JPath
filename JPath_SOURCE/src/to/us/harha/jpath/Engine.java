@@ -30,15 +30,11 @@ public class Engine
 	/*
 	 * Engine constructor
 	 * Display display: The chosen display
-	 * int max_threads: Maximum amount of threads to be used for rendering
-	 * double max_fps: Maximum frames per second
-	 * boolean debug: Render debug info on screen or not?
-	 * int max_recursion: Maximum recursion depth in path tracing
 	 */
 	public Engine(Display display)
 	{
 		m_isRunning = false;
-		m_raytrace_enabled = true;
+		m_raytrace_enabled = false;
 		m_log = new Logger(this.getClass().getName());
 		m_display = display;
 		m_frameTime = 1.0 / Config.max_frames_per_second;
@@ -96,8 +92,12 @@ public class Engine
 		double lastTime = TimeUtils.getTime();
 		double unprocessedTime = 0.0;
 
-		while (m_isRunning || m_tracer.getSamplesPerPixel(0) <= Config.max_samples_per_pixel && Config.saving_enabled)
+		while (m_isRunning)
 		{
+			// If saving the render is enabled and we have gathered enough samples, save the image and close the program
+			if (m_tracer.getSamplesPerPixel(0) > Config.max_samples_per_pixel && Config.saving_enabled)
+				m_isRunning = false;
+
 			boolean render = false;
 
 			double startTime = TimeUtils.getTime();
@@ -141,7 +141,7 @@ public class Engine
 			}
 		}
 
-		m_display.saveBitmapToFile("JPathRender_SPP" + Config.max_samples_per_pixel);
+		m_display.saveBitmapToFile("JPathRender_SPP" + Config.max_samples_per_pixel + "_SS_" + Config.ss_enabled + "_SSAMOUNT_" + Config.ss_amount);
 		m_eService.shutdown();
 		stop();
 	}
@@ -161,6 +161,11 @@ public class Engine
 		{
 			m_tracer.clearSamples();
 			m_raytrace_enabled = false;
+		}
+
+		if (m_input.getKey(Input.KEY_3))
+		{
+			Config.debug_enabled = (Config.debug_enabled == false) ? true : false;
 		}
 	}
 

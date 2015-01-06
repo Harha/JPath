@@ -201,16 +201,6 @@ public class Tracer
 				int index_screen = x + y * display.getWidth();
 				int index_sample = xx + yy * width_portion;
 
-				// Draw lines to separate each section, for debugging purposes
-				if (Config.debug_enabled)
-				{
-					if (xx == 0 || xx == width_portion || yy == 0 || yy == width_portion)
-					{
-						display.drawPixelVec3f(x, y, COLOR_DEBUG);
-						continue;
-					}
-				}
-
 				// Supersample each pixel if demanded
 				if (Config.ss_enabled)
 				{
@@ -243,6 +233,15 @@ public class Tracer
 
 				// Draw the pixel
 				display.drawPixelVec3fAveraged(index_screen, m_samples[index_screen], m_samples_taken.get(t));
+
+				// Draw lines to separate each section, for debugging purposes
+				if (Config.debug_enabled)
+				{
+					if (xx == 0 || xx == width_portion || yy == 0 || yy == width_portion)
+					{
+						display.drawPixelVec3f(x, y, COLOR_DEBUG);
+					}
+				}
 			}
 		}
 	}
