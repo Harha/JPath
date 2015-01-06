@@ -34,12 +34,12 @@ public class Scene
 		Material mat_red_diffuse = new Material(new Vec3f(0.0f), new Vec3f(1.0f, 0.0f, 0.0f));
 		Material mat_green_diffuse = new Material(new Vec3f(0.0f), new Vec3f(0.0f, 1.0f, 0.0f));
 		Material mat_blue_diffuse = new Material(new Vec3f(0.0f), new Vec3f(0.0f, 0.0f, 1.0f));
-		Material mat_yellow_diffuse = new Material(new Vec3f(0.0f), new Vec3f(1.0f, 1.0f, 0.0f));
-		Material mat_purple_diffuse = new Material(new Vec3f(0.0f), new Vec3f(0.5f, 0.0f, 1.0f));
-		Material mat_cyan = new Material(new Vec3f(0.0f), new Vec3f(0.0f, 1.0f, 1.0f), 0.5f, 0.0f, 0.0f, 0.0f);
+		Material mat_yellow_diffuse = new Material(new Vec3f(0.0f), new Vec3f(0.375f, 1.0f, 0.0f));
+		Material mat_purple_diffuse = new Material(new Vec3f(0.0f), new Vec3f(0.5f, 0.5f, 1.0f));
+		Material mat_cyan = new Material(new Vec3f(0.0f), new Vec3f(1.0f, 0.0f, 0.1f), 0.25f, 1.0f, 1.52f, 0.1f);
 		Material mat_black_mirror = new Material(new Vec3f(0.0f), new Vec3f(), 1.0f, 0.0f, 0.0f, 0.0f);
 		Material mat_black_glass = new Material(new Vec3f(0.0f), new Vec3f(), 0.25f, 1.0f, 1.52f, 0.0f);
-		Material mat_white_light = new Material(Vec3f.scale(new Vec3f(0.9568f, 1.0f, 0.9803f), 2.0f), new Vec3f());
+		Material mat_white_light = new Material(Vec3f.scale(new Vec3f(0.9568f, 1.0f, 0.9803f), 1.25f), new Vec3f());
 
 		TracerObject obj_white_diffuse = new TracerObject(mat_white_diffuse);
 		TracerObject obj_red_diffuse = new TracerObject(mat_red_diffuse);
@@ -57,7 +57,7 @@ public class Scene
 
 		Primitive sphere_0 = new Sphere(new Vec3f(2.0f, 1.0f, 5.0f), 1.0f);
 		Primitive sphere_1 = new Sphere(new Vec3f(1.0f, 2.0f, -1.0f), 2.0f);
-		Primitive sphere_2 = new Sphere(new Vec3f(-2.0f, 2.5f, 3.0f), 0.5f);
+		Primitive sphere_2 = new Sphere(new Vec3f(-2.0f, 4.0f, 3.0f), 1.75f);
 
 		Primitive floor_0 = new Plane(new Vec3f(0.0f, 0.0f, 0.0f), new Vec3f(0.0f, 1.0f, 0.0f));
 		Primitive ceiling_0 = new Plane(new Vec3f(0.0f, 8.0f, 0.0f), new Vec3f(0.0f, -1.0f, 0.0f));

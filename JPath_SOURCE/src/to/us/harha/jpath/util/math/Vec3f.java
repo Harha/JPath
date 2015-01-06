@@ -160,33 +160,15 @@ public class Vec3f
 
 	public static Vec3f refract(Vec3f I, Vec3f N, float i1, float i2)
 	{
-		float NdotI, n1, n2;
+		float NdotI = dot(I, N), n = (NdotI > 0.0f) ? i2 / i1 : i1 / i2;
+		float cos_t = 1.0f - n * n * (1.0f - NdotI * NdotI);
 
-		NdotI = dot(N, I);
+		if (cos_t < 0.0f)
+			return reflect(I, N);
 
-		if (NdotI > 0.0)
-		{
-			n1 = i2;
-			n2 = i1;
-		} else
-		{
-			n1 = i1;
-			n2 = i2;
-		}
-
-		float eta = n1 / n2;
-		float k = 1.0f - eta * eta * (1.0f - NdotI * NdotI);
-
-		if (k < 0.0f)
-			return new Vec3f(0.0f);
-
-		Vec3f temp_a = scale(I, eta);
-		Vec3f temp_b = scale(N, eta * NdotI + (float) Math.sqrt(k));
-
-		return normalize(sub(temp_a, temp_b));
+		return normalize(add(scale(I, n), scale(N, n * NdotI - (float) Math.sqrt(cos_t))));
 	}
 
-	// Spherical coordinates!! D:
 	public static Vec3f randomHemisphere(Vec3f N)
 	{
 		float phi = ThreadLocalRandom.current().nextFloat() * (float) (2.0 * Math.PI);
@@ -197,20 +179,6 @@ public class Vec3f
 
 		return rotateTowards(V, N);
 	}
-
-	/*
-	public static Vec3f randomHemisphere(Vec3f N)
-	{
-		Vec3f R;
-
-		do
-		{
-			R = normalize(new Vec3f(2.0f * ThreadLocalRandom.current().nextFloat() - 1.0f, 2.0f * ThreadLocalRandom.current().nextFloat() - 1.0f, 2.0f * ThreadLocalRandom.current().nextFloat() - 1.0f));
-		} while (dot(N, R) <= 0.0f);
-
-		return R;
-	}
-	*/
 
 	public float getComponent(int i, float w)
 	{
