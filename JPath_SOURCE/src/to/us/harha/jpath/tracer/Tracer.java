@@ -3,13 +3,16 @@ package to.us.harha.jpath.tracer;
 import java.util.Arrays;
 import java.util.concurrent.atomic.AtomicIntegerArray;
 
+import to.us.harha.jpath.Config;
 import to.us.harha.jpath.Display;
+import to.us.harha.jpath.Input;
 import to.us.harha.jpath.Main;
 import to.us.harha.jpath.tracer.object.Material;
 import to.us.harha.jpath.tracer.object.TracerObject;
 import to.us.harha.jpath.util.Logger;
 import to.us.harha.jpath.util.MathUtils;
 import to.us.harha.jpath.util.math.Intersection;
+import to.us.harha.jpath.util.math.Mat4f;
 import to.us.harha.jpath.util.math.Primitive;
 import to.us.harha.jpath.util.math.Ray;
 import to.us.harha.jpath.util.math.Vec3f;
@@ -17,17 +20,10 @@ import to.us.harha.jpath.util.math.Vec3f;
 public class Tracer
 {
 	// Tracer variables and objects
-	private int                m_max_recursion;
-	private boolean            m_debug;
 	private Vec3f[]            m_samples;
 	private Scene              m_scene;
 	private Camera             m_camera;
 	private Logger             m_log;
-
-	// Antialiasing
-	private boolean            m_supersampling;
-	private int                m_supersampling_amount;
-	private float              m_supersampling_jitter;
 
 	// Multithreading
 	private int                m_thread_amount;
@@ -37,16 +33,11 @@ public class Tracer
 	private static final Vec3f COLOR_BLACK = new Vec3f();
 	private static final Vec3f COLOR_DEBUG = new Vec3f(1.0f, 0.0f, 1.0f);
 
-	public Tracer(int thread_amount, int max_recursion, int sample_amount, boolean supersampling, int supersampling_amount, float supersampling_jitter, boolean debug)
+	public Tracer(int thread_amount, int resolution)
 	{
 		m_log = new Logger(this.getClass().getName());
 		m_thread_amount = thread_amount;
-		m_max_recursion = max_recursion;
-		m_samples = new Vec3f[sample_amount];
-		m_supersampling = supersampling;
-		m_supersampling_amount = supersampling_amount;
-		m_supersampling_jitter = supersampling_jitter;
-		m_debug = debug;
+		m_samples = new Vec3f[resolution];
 
 		if (m_thread_amount > 1)
 			m_samples_taken = new AtomicIntegerArray((m_thread_amount / 2) * (m_thread_amount / 2));
@@ -64,27 +55,103 @@ public class Tracer
 	/*
 	 * Update the scene
 	 */
-	public void update(float delta)
+	public void update(float delta, Input input)
 	{
-		/*
-		for (TracerObject o : m_scene.getObjects())
+		// Temporary way of handling input, this is just bad but whatever.. it kinda works
+		if (input.getKey(Input.KEY_W))
 		{
-			if (!o.getPrimitives().isEmpty())
-				o.updateTransform();
+			m_camera.setPos(Vec3f.add(m_camera.getPos(), Vec3f.scale(m_camera.getForward(), delta)));
+		} else if (input.getKey(Input.KEY_S))
+		{
+			m_camera.setPos(Vec3f.add(m_camera.getPos(), Vec3f.scale(m_camera.getBack(), delta)));
 		}
-		*/
+
+		if (input.getKey(Input.KEY_D))
+		{
+			m_camera.setPos(Vec3f.add(m_camera.getPos(), Vec3f.scale(m_camera.getRight(), delta)));
+		} else if (input.getKey(Input.KEY_A))
+		{
+			m_camera.setPos(Vec3f.add(m_camera.getPos(), Vec3f.scale(m_camera.getLeft(), delta)));
+		}
+
+		if (input.getKey(Input.KEY_R))
+		{
+			m_camera.setPos(Vec3f.add(m_camera.getPos(), Vec3f.scale(m_camera.getUp(), delta)));
+		} else if (input.getKey(Input.KEY_F))
+		{
+			m_camera.setPos(Vec3f.add(m_camera.getPos(), Vec3f.scale(m_camera.getDown(), delta)));
+		}
+
+		if (input.getKey(Input.KEY_UP))
+		{
+			Mat4f rotation = new Mat4f();
+
+			rotation.initRotation(delta * 45.0f, 0.0f, 0.0f);
+
+			m_camera.setForward(Mat4f.mul(rotation, m_camera.getForward(), 1.0f));
+
+			m_camera.calcDirections();
+		} else if (input.getKey(Input.KEY_DOWN))
+		{
+			Mat4f rotation = new Mat4f();
+
+			rotation.initRotation(-delta * 45.0f, 0.0f, 0.0f);
+
+			m_camera.setForward(Mat4f.mul(rotation, m_camera.getForward(), 1.0f));
+
+			m_camera.calcDirections();
+		}
+
+		if (input.getKey(Input.KEY_RIGHT))
+		{
+			Mat4f rotation = new Mat4f();
+
+			rotation.initRotation(0.0f, delta * 45.0f, 0.0f);
+
+			m_camera.setForward(Mat4f.mul(rotation, m_camera.getForward(), 1.0f));
+
+			m_camera.calcDirections();
+		} else if (input.getKey(Input.KEY_LEFT))
+		{
+			Mat4f rotation = new Mat4f();
+
+			rotation.initRotation(0.0f, -delta * 45.0f, 0.0f);
+
+			m_camera.setForward(Mat4f.mul(rotation, m_camera.getForward(), 1.0f));
+
+			m_camera.calcDirections();
+		}
+	}
+
+	/*
+	 * Render the whole screen at once using simple raytracing
+	 * For single-threaded rendering
+	 */
+	public void renderRayTraced(Display display)
+	{
+		for (int y = 0; y < display.getHeight(); y++)
+		{
+			for (int x = 0; x < display.getWidth(); x++)
+			{
+				// Calculate the primary ray
+				Ray ray = Ray.calcCameraRay(m_camera, display.getWidth(), display.getHeight(), display.getAR(), x, y);
+
+				// Do the ray tracing
+				Vec3f color_raytraced = rayTrace(ray, 0);
+
+				// Draw the pixel
+				display.drawPixelVec3f(x, y, color_raytraced);
+			}
+		}
 	}
 
 	/*
 	 * Render the whole screen at once
 	 * For single-threaded rendering
 	 */
-	public void render(Display display)
+	public void renderSingleThreaded(Display display)
 	{
 		incrementSampleCounter(0);
-
-		float width = display.getWidth();
-		float height = display.getHeight();
 
 		for (int y = 0; y < display.getHeight(); y++)
 		{
@@ -109,7 +176,7 @@ public class Tracer
 	 * The size of one portion is (m_cpu_cores)^2
 	 * For multi-threaded rendering
 	 */
-	public void renderPortion(Display display, int t1, int t2)
+	public void renderMultiThreaded(Display display, int t1, int t2)
 	{
 		int t = t1 + t2 * (m_thread_amount / 2);
 
@@ -135,7 +202,7 @@ public class Tracer
 				int index_sample = xx + yy * width_portion;
 
 				// Draw lines to separate each section, for debugging purposes
-				if (m_debug)
+				if (Config.debug_enabled)
 				{
 					if (xx == 0 || xx == width_portion || yy == 0 || yy == width_portion)
 					{
@@ -145,22 +212,22 @@ public class Tracer
 				}
 
 				// Supersample each pixel if demanded
-				if (m_supersampling)
+				if (Config.ss_enabled)
 				{
 					Vec3f sample = COLOR_BLACK;
 
 					// Sample the pixels n times
-					for (int i = 0; i < m_supersampling_amount; i++)
+					for (int i = 0; i < Config.ss_amount; i++)
 					{
 						// Calculate the randomized primary ray
-						Ray ray = Ray.calcSupersampledCameraRay(m_camera, display.getWidth(), display.getHeight(), display.getAR(), x, y, m_supersampling_jitter);
+						Ray ray = Ray.calcSupersampledCameraRay(m_camera, display.getWidth(), display.getHeight(), display.getAR(), x, y, Config.ss_jitter);
 
 						// Do the path tracing
 						sample = Vec3f.add(sample, pathTrace(ray, 0));
 					}
 
 					// Get the average color of the sample
-					Vec3f sample_averaged = Vec3f.divide(sample, m_supersampling_amount);
+					Vec3f sample_averaged = Vec3f.divide(sample, Config.ss_amount);
 
 					// Add the averaged sample to the samples
 					m_samples[index_screen] = Vec3f.add(m_samples[index_screen], sample_averaged);
@@ -187,7 +254,7 @@ public class Tracer
 	public Vec3f pathTrace(Ray ray, int n)
 	{
 		// Return black if max recursion depth has been exceeded
-		if (n > m_max_recursion)
+		if (n > Config.max_recursion)
 			return COLOR_BLACK;
 
 		// Initialize some objects and variables
@@ -275,6 +342,79 @@ public class Tracer
 
 		// Simple radiance clamping to avoid fireflies
 		return MathUtils.clamp(color_final, 0.0f, 10.0f);
+	}
+
+	public Vec3f rayTrace(Ray ray, int n)
+	{
+		// Return black if max recursion depth has been exceeded
+		if (n > Config.max_recursion)
+			return COLOR_BLACK;
+
+		// Initialize some objects and variables
+		Intersection iSection = null;
+		Intersection iSectionFinal = null;
+		TracerObject OBJECT = null;
+		float t_init = Float.MAX_VALUE;
+
+		// Intersect the initial ray against all scene objects and find the closest interestection to the ray origin
+		for (TracerObject o : m_scene.getObjects())
+		{
+			for (Primitive p : o.getPrimitives())
+			{
+				iSection = p.intersect(ray);
+				if (iSection != null)
+				{
+					if (iSection.getT() < t_init)
+					{
+						iSectionFinal = iSection;
+						t_init = iSection.getT();
+						OBJECT = o;
+					}
+				}
+			}
+		}
+
+		// If no intersection happened at all, return black
+		if (iSectionFinal == null)
+			return COLOR_BLACK;
+
+		// Get the object's surface material
+		Material M = OBJECT.getMaterial();
+
+		// If the object is a light source, return it's emittance
+		if (Vec3f.length(M.getEmittance()) > 0.0f && iSectionFinal.getT() > Main.EPSILON)
+			return M.getEmittance();
+
+		// Get the intersection's info
+		Vec3f P = iSectionFinal.getPos();
+		Vec3f N = iSectionFinal.getNorm();
+
+		// Get the info about the ray
+		Vec3f O = ray.getPos();
+		Vec3f V = ray.getDir();
+
+		// Initialize the final color which will be returned in the end
+		Vec3f color_final = new Vec3f();
+
+		// If the object is reflective like a mirror, reflect a ray
+		if (M.getReflectivity() > 0.0f)
+		{
+			Ray newRay;
+			newRay = new Ray(P, Vec3f.normalize(Vec3f.reflect(V, N)));
+			color_final = Vec3f.add(color_final, Vec3f.scale(rayTrace(newRay, n + 1), M.getReflectivity()));
+		}
+
+		// If the object is refractive like glass, refract the ray
+		if (M.getRefractivity() > 0.0f)
+		{
+			Ray newRay;
+			newRay = new Ray(P, Vec3f.normalize(Vec3f.refract(V, N, 1.0f, M.getRefractivityIndex())));
+			color_final = Vec3f.add(color_final, Vec3f.scale(rayTrace(newRay, n + 1), M.getRefractivity()));
+		}
+
+		color_final = MathUtils.clamp(Vec3f.add(color_final, M.getReflectance()), 0.0f, 1.0f);
+
+		return color_final;
 	}
 
 	/*

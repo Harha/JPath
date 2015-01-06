@@ -1,4 +1,4 @@
-JPATH
+JPath
 ====
 
 a path tracer written purely in java.

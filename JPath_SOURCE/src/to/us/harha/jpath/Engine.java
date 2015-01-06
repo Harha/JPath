@@ -14,15 +14,16 @@ public class Engine
 {
 	// Engine variables and objects
 	private double                   m_frameTime;
-	private boolean                  m_debug;
 	private boolean                  m_isRunning;
+	private boolean                  m_raytrace_enabled;
 	private Display                  m_display;
 	private Logger                   m_log;
 	private Tracer                   m_tracer;
+	private Input                    m_input;
 
 	// Multithreading
 	private int                      m_cpu_cores;
-	private int                      m_max_threads;
+	private int                      m_thread_amount;
 	private ScheduledExecutorService m_eService;
 	private boolean[]                m_executors_finished;
 
@@ -34,30 +35,34 @@ public class Engine
 	 * boolean debug: Render debug info on screen or not?
 	 * int max_recursion: Maximum recursion depth in path tracing
 	 */
-	public Engine(Display display, int max_threads, double max_fps, int max_recursion, boolean supersampling, boolean debug)
+	public Engine(Display display)
 	{
 		m_isRunning = false;
+		m_raytrace_enabled = true;
 		m_log = new Logger(this.getClass().getName());
 		m_display = display;
-		m_frameTime = 1.0 / max_fps;
-		m_debug = debug;
+		m_frameTime = 1.0 / Config.max_frames_per_second;
 		m_cpu_cores = Runtime.getRuntime().availableProcessors();
-		m_max_threads = ((max_threads == -1) ? m_cpu_cores : max_threads);
+		m_thread_amount = ((Config.mt_amount == -1) ? m_cpu_cores : Config.mt_amount);
 
-		m_log.printMsg("# of Available CPU Cores: " + m_cpu_cores + " | Using a maximum of " + m_max_threads + " threads for rendering.");
+		m_log.printMsg("# of Available CPU Cores: " + m_cpu_cores + " | Using a maximum of " + m_thread_amount + " threads for rendering.");
 
 		// Create the executor for each thread
-		m_eService = Executors.newScheduledThreadPool(m_max_threads);
+		m_eService = Executors.newScheduledThreadPool(m_thread_amount);
 
-		if (m_max_threads >= 2)
-			m_executors_finished = new boolean[(m_max_threads / 2) * (m_max_threads / 2)];
+		if (m_thread_amount >= 2)
+			m_executors_finished = new boolean[(m_thread_amount / 2) * (m_thread_amount / 2)];
 		else
 			m_executors_finished = new boolean[1];
 
 		Arrays.fill(m_executors_finished, true);
 
+		// Create input stuff
+		m_input = new Input();
+		m_display.addKeyListener(m_input);
+
 		// Create the final tracer object
-		m_tracer = new Tracer(m_max_threads, max_recursion, m_display.getWidth() * m_display.getHeight(), supersampling, 8, Main.EPSILON * 2.5f, m_debug);
+		m_tracer = new Tracer(m_thread_amount, m_display.getWidth() * m_display.getHeight());
 	}
 
 	public void start()
@@ -77,6 +82,7 @@ public class Engine
 
 		m_log.printMsg("Engine instance has stopped!");
 		m_isRunning = false;
+		System.exit(0);
 	}
 
 	/*
@@ -90,7 +96,7 @@ public class Engine
 		double lastTime = TimeUtils.getTime();
 		double unprocessedTime = 0.0;
 
-		while (m_isRunning)
+		while (m_isRunning || m_tracer.getSamplesPerPixel(0) <= Config.max_samples_per_pixel && Config.saving_enabled)
 		{
 			boolean render = false;
 
@@ -134,6 +140,10 @@ public class Engine
 				}
 			}
 		}
+
+		m_display.saveBitmapToFile("JPathRender_SPP" + Config.max_samples_per_pixel);
+		m_eService.shutdown();
+		stop();
 	}
 
 	/*
@@ -141,7 +151,17 @@ public class Engine
 	 */
 	private void update(float delta)
 	{
-		m_tracer.update(delta);
+		m_tracer.update(delta, m_input);
+
+		if (m_input.getKey(Input.KEY_1))
+		{
+			m_tracer.clearSamples();
+			m_raytrace_enabled = true;
+		} else if (m_input.getKey(Input.KEY_2))
+		{
+			m_tracer.clearSamples();
+			m_raytrace_enabled = false;
+		}
 	}
 
 	/*
@@ -150,49 +170,56 @@ public class Engine
 	private void render()
 	{
 		BufferStrategy bs = m_display.getBufferStrategy();
+
 		if (bs == null)
 		{
 			m_display.createBufferStrategy(2);
 			return;
 		}
 
-		// Only use multithreaded rendering if the amount of CPU cores is greater than 4
-		// This could and will be improved, my current algorithms just won't split the screen
-		// correctly for lower than 4 cores
-		if (m_max_threads >= 4)
+		if (m_raytrace_enabled == false)
 		{
-			// Get the state of all executor threads, only continue rendering if they are all finished
-			if (getExecutorsState() == true)
+			// Only use multithreaded rendering if the amount of CPU cores is greater than 4
+			// This could and will be improved, my current algorithms just won't split the screen
+			// correctly for lower than 4 cores
+			if (m_thread_amount >= 4)
 			{
-				// Iterate through the horizontal column of cells
-				for (int j = 0; j < m_max_threads / 2; j++)
+				// Get the state of all executor threads, only continue rendering if they are all finished
+				if (getExecutorsState() == true)
 				{
-					// Iterate through the vertical row of cells
-					for (int i = 0; i < m_max_threads / 2; i++)
+					// Iterate through the horizontal column of cells
+					for (int j = 0; j < m_thread_amount / 2; j++)
 					{
-						int x = i;
-						int y = j;
-
-						// Get the 1D index of the current chosen cell
-						int t = i + j * (m_max_threads / 2);
-
-						// Execute a render task with a thread for a chosen cell
-						m_eService.execute(new Runnable()
+						// Iterate through the vertical row of cells
+						for (int i = 0; i < m_thread_amount / 2; i++)
 						{
-							@Override
-							public void run()
+							int x = i;
+							int y = j;
+
+							// Get the 1D index of the current chosen cell
+							int t = i + j * (m_thread_amount / 2);
+
+							// Execute a render task with a thread for a chosen cell
+							m_eService.execute(new Runnable()
 							{
-								setExecutorState(t, false);
-								m_tracer.renderPortion(m_display, x, y);
-								setExecutorState(t, true);
-							}
-						});
+								@Override
+								public void run()
+								{
+									setExecutorState(t, false);
+									m_tracer.renderMultiThreaded(m_display, x, y);
+									setExecutorState(t, true);
+								}
+							});
+						}
 					}
 				}
+			} else
+			{
+				m_tracer.renderSingleThreaded(m_display);
 			}
 		} else
 		{
-			m_tracer.render(m_display);
+			m_tracer.renderRayTraced(m_display);
 		}
 
 		Graphics g = bs.getDrawGraphics();
@@ -204,7 +231,7 @@ public class Engine
 	/*
 	 * Set the state of a cell @ index
 	 */
-	public synchronized void setExecutorState(int index, boolean state)
+	public void setExecutorState(int index, boolean state)
 	{
 		m_executors_finished[index] = state;
 	}

@@ -62,4 +62,14 @@ public class Camera
 		return Vec3f.negate(m_right);
 	}
 
+	public void setPos(Vec3f pos)
+	{
+		m_pos = pos;
+	}
+
+	public void setForward(Vec3f forward)
+	{
+		m_forward = forward;
+	}
+
 }

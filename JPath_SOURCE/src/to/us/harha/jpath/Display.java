@@ -4,8 +4,11 @@ import java.awt.Canvas;
 import java.awt.Dimension;
 import java.awt.image.BufferedImage;
 import java.awt.image.DataBufferInt;
+import java.io.FileOutputStream;
+import java.io.IOException;
 import java.util.Arrays;
 
+import javax.imageio.ImageIO;
 import javax.swing.JFrame;
 
 import to.us.harha.jpath.util.MathUtils;
@@ -100,6 +103,23 @@ public class Display extends Canvas
 		if (x < 0 || x >= m_width || y < 0 || y >= m_height)
 			return;
 		m_pixels[x + y * m_width] = color;
+	}
+
+	public void saveBitmapToFile(String fileName)
+	{
+		String filePath = "./renders/" + fileName + ".png";
+		FileOutputStream output;
+		try
+		{
+			output = new FileOutputStream(filePath);
+			BufferedImage bi = getImage();
+			ImageIO.write(bi, "png", output);
+			Main.LOG.printMsg("Succesfully saved an image to " + filePath);
+		} catch (IOException e)
+		{
+			e.printStackTrace();
+			System.exit(1);
+		}
 	}
 
 	public int getWidth()
