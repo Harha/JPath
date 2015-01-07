@@ -164,9 +164,9 @@ public class Vec3f
 		float cos_t = 1.0f - n * n * (1.0f - NdotI * NdotI);
 
 		if (cos_t < 0.0f)
-			return reflect(I, N);
+			return new Vec3f(0.0f);
 
-		return normalize(add(scale(I, n), scale(N, n * NdotI - (float) Math.sqrt(cos_t))));
+		return add(scale(I, n), scale(N, n * NdotI - (float) Math.sqrt(cos_t)));
 	}
 
 	public static Vec3f randomHemisphere(Vec3f N)

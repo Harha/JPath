@@ -61,6 +61,9 @@ public class Engine
 		m_tracer = new Tracer(m_thread_amount, m_display.getWidth() * m_display.getHeight());
 	}
 
+	/*
+	 * Start the engine
+	 */
 	public void start()
 	{
 		if (m_isRunning)
@@ -71,6 +74,9 @@ public class Engine
 		run();
 	}
 
+	/*
+	 * Stop the engine
+	 */
 	public void stop()
 	{
 		if (!m_isRunning)
@@ -78,7 +84,7 @@ public class Engine
 
 		m_log.printMsg("Engine instance has stopped!");
 		m_isRunning = false;
-		System.exit(0);
+		m_eService.shutdown();
 	}
 
 	/*
@@ -94,9 +100,9 @@ public class Engine
 
 		while (m_isRunning)
 		{
-			// If saving the render is enabled and we have gathered enough samples, save the image and close the program
+			// If saving the image is enabled and we have gathered enough samples, save the image and close the program
 			if (m_tracer.getSamplesPerPixel(0) > Config.max_samples_per_pixel && Config.saving_enabled)
-				m_isRunning = false;
+				stop();
 
 			boolean render = false;
 
@@ -141,9 +147,9 @@ public class Engine
 			}
 		}
 
+		// Save the final rendered image
 		m_display.saveBitmapToFile("JPathRender_SPP" + Config.max_samples_per_pixel + "_SS_" + Config.ss_enabled + "_SSAMOUNT_" + Config.ss_amount);
-		m_eService.shutdown();
-		stop();
+		System.exit(0);
 	}
 
 	/*

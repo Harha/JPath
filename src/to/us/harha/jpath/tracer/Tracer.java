@@ -296,8 +296,8 @@ public class Tracer
 		Vec3f N = iSectionFinal.getNorm();
 
 		// Get the info about the ray
-		Vec3f O = ray.getPos();
-		Vec3f V = ray.getDir();
+		Vec3f RO = ray.getPos();
+		Vec3f RD = ray.getDir();
 
 		// Initialize the final color which will be returned in the end
 		Vec3f color_final = new Vec3f();
@@ -307,9 +307,9 @@ public class Tracer
 		{
 			Ray newRay;
 			if (M.getGlossiness() > 0.0f)
-				newRay = new Ray(P, Vec3f.normalize(Vec3f.add(Vec3f.reflect(V, N), Vec3f.scale(Vec3f.randomHemisphere(N), M.getGlossiness()))));
+				newRay = new Ray(P, Vec3f.normalize(Vec3f.add(Vec3f.reflect(RD, N), Vec3f.scale(Vec3f.randomHemisphere(N), M.getGlossiness()))));
 			else
-				newRay = new Ray(P, Vec3f.normalize(Vec3f.reflect(V, N)));
+				newRay = new Ray(P, Vec3f.normalize(Vec3f.reflect(RD, N)));
 
 			color_final = Vec3f.add(color_final, Vec3f.scale(pathTrace(newRay, n + 1), M.getReflectivity()));
 		}
@@ -319,9 +319,9 @@ public class Tracer
 		{
 			Ray newRay;
 			if (M.getGlossiness() > 0.0f)
-				newRay = new Ray(P, Vec3f.normalize(Vec3f.add(Vec3f.refract(V, N, 1.0f, M.getRefractivityIndex()), Vec3f.scale(Vec3f.randomHemisphere(N), M.getGlossiness()))));
+				newRay = new Ray(P, Vec3f.normalize(Vec3f.add(Vec3f.refract(RD, N, 1.0f, M.getRefractivityIndex()), Vec3f.scale(Vec3f.randomHemisphere(N), M.getGlossiness()))));
 			else
-				newRay = new Ray(P, Vec3f.normalize(Vec3f.refract(V, N, 1.0f, M.getRefractivityIndex())));
+				newRay = new Ray(P, Vec3f.normalize(Vec3f.refract(RD, N, 1.0f, M.getRefractivityIndex())));
 
 			color_final = Vec3f.add(color_final, Vec3f.scale(pathTrace(newRay, n + 1), M.getRefractivity()));
 		}
@@ -343,6 +343,10 @@ public class Tracer
 		return MathUtils.clamp(color_final, 0.0f, 10.0f);
 	}
 
+	/*
+	 * Simple raytracing, no shading or anything
+	 * Just for navigation, it's still slow but at least "real-time"
+	 */
 	public Vec3f rayTrace(Ray ray, int n)
 	{
 		// Return black if max recursion depth has been exceeded
@@ -382,38 +386,37 @@ public class Tracer
 
 		// If the object is a light source, return it's emittance
 		if (Vec3f.length(M.getEmittance()) > 0.0f && iSectionFinal.getT() > Main.EPSILON)
-			return M.getEmittance();
+			return MathUtils.clamp(M.getEmittance(), 0.0f, 1.0f);
 
 		// Get the intersection's info
 		Vec3f P = iSectionFinal.getPos();
 		Vec3f N = iSectionFinal.getNorm();
 
 		// Get the info about the ray
-		Vec3f O = ray.getPos();
-		Vec3f V = ray.getDir();
+		Vec3f RO = ray.getPos();
+		Vec3f RD = ray.getDir();
 
 		// Initialize the final color which will be returned in the end
 		Vec3f color_final = new Vec3f();
 
-		// If the object is reflective like a mirror, reflect a ray
+		// Reflect
 		if (M.getReflectivity() > 0.0f)
 		{
-			Ray newRay;
-			newRay = new Ray(P, Vec3f.normalize(Vec3f.reflect(V, N)));
-			color_final = Vec3f.add(color_final, Vec3f.scale(rayTrace(newRay, n + 1), M.getReflectivity()));
+			color_final = Vec3f.add(color_final, Vec3f.scale(rayTrace(new Ray(iSectionFinal.getPos(), Vec3f.normalize(Vec3f.reflect(RD, N))), n + 1), M.getReflectivity()));
 		}
 
-		// If the object is refractive like glass, refract the ray
+		// Refract
 		if (M.getRefractivity() > 0.0f)
 		{
-			Ray newRay;
-			newRay = new Ray(P, Vec3f.normalize(Vec3f.refract(V, N, 1.0f, M.getRefractivityIndex())));
-			color_final = Vec3f.add(color_final, Vec3f.scale(rayTrace(newRay, n + 1), M.getRefractivity()));
+			color_final = Vec3f.add(color_final, Vec3f.scale(rayTrace(new Ray(iSectionFinal.getPos(), Vec3f.normalize(Vec3f.refract(RD, N, 1.0f, M.getRefractivityIndex()))), n + 1), M.getRefractivity()));
 		}
 
-		color_final = MathUtils.clamp(Vec3f.add(color_final, M.getReflectance()), 0.0f, 1.0f);
+		// Diffuse objects
+		if (Vec3f.length(M.getReflectance()) > 0.0f)
+			color_final = Vec3f.add(color_final, Vec3f.scale(M.getReflectance(), 0.50f));
 
-		return color_final;
+		// Clamp the final color
+		return MathUtils.clamp(color_final, 0.0f, 1.0f);
 	}
 
 	/*
