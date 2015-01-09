@@ -34,12 +34,12 @@ public class Engine
 	public Engine(Display display)
 	{
 		m_isRunning = false;
-		m_raytrace_enabled = false;
+		m_raytrace_enabled = true;
 		m_log = new Logger(this.getClass().getName());
 		m_display = display;
 		m_frameTime = 1.0 / Config.max_frames_per_second;
 		m_cpu_cores = Runtime.getRuntime().availableProcessors();
-		m_thread_amount = ((Config.mt_amount == -1) ? m_cpu_cores : Config.mt_amount);
+		m_thread_amount = ((Config.mt_amount < 0) ? m_cpu_cores : Config.mt_amount);
 
 		m_log.printMsg("# of Available CPU Cores: " + m_cpu_cores + " | Using a maximum of " + m_thread_amount + " threads for rendering.");
 
@@ -62,7 +62,7 @@ public class Engine
 	}
 
 	/*
-	 * Start the engine
+	 * Start the program
 	 */
 	public void start()
 	{
@@ -75,7 +75,7 @@ public class Engine
 	}
 
 	/*
-	 * Stop the engine
+	 * Stop the program
 	 */
 	public void stop()
 	{
@@ -184,7 +184,7 @@ public class Engine
 
 		if (bs == null)
 		{
-			m_display.createBufferStrategy(2);
+			m_display.createBufferStrategy(3);
 			return;
 		}
 

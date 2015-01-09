@@ -1,7 +1,5 @@
 package to.us.harha.jpath.util.math;
 
-import java.util.Arrays;
-
 public class Primitive
 {
 

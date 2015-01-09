@@ -21,6 +21,10 @@ public class Input implements KeyListener
 	public static final int KEY_3     = 51;
 	public static final int KEY_R     = 82;
 	public static final int KEY_F     = 70;
+	public static final int KEY_Q     = 81;
+	public static final int KEY_E     = 69;
+	public static final int KEY_PLUS  = 107;
+	public static final int KEY_MINUS = 109;
 
 	public Input()
 	{

@@ -59,9 +59,9 @@ public class Config
 			o = new FileOutputStream(CONFIG_PATH);
 
 			// Set each variable
-			p.setProperty("window_width", "256");
-			p.setProperty("window_height", "256");
-			p.setProperty("window_scale", "2");
+			p.setProperty("window_width", "128");
+			p.setProperty("window_height", "128");
+			p.setProperty("window_scale", "4");
 			p.setProperty("debug_enabled", "true");
 			p.setProperty("saving_enabled", "false");
 			p.setProperty("max_recursion", "4");
@@ -71,7 +71,7 @@ public class Config
 			p.setProperty("mt_amount", "-1");
 			p.setProperty("ss_enabled", "true");
 			p.setProperty("ss_amount", "4");
-			p.setProperty("ss_jitter", "1e-3");
+			p.setProperty("ss_jitter", "0.0025f");
 
 			// Store the variables
 			p.store(o, null);

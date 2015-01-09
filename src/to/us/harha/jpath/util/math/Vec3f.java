@@ -2,8 +2,6 @@ package to.us.harha.jpath.util.math;
 
 import java.util.concurrent.ThreadLocalRandom;
 
-import to.us.harha.jpath.Main;
-
 public class Vec3f
 {
 
@@ -155,7 +153,7 @@ public class Vec3f
 
 	public static Vec3f reflect(Vec3f I, Vec3f N)
 	{
-		return sub(I, Vec3f.scale(scale(N, dot(N, I)), 2.0f));
+		return sub(I, scale(scale(N, dot(N, I)), 2.0f));
 	}
 
 	public static Vec3f refract(Vec3f I, Vec3f N, float i1, float i2)
@@ -175,7 +173,7 @@ public class Vec3f
 		float rq = ThreadLocalRandom.current().nextFloat();
 		float r = (float) Math.sqrt(rq);
 
-		Vec3f V = Vec3f.normalize(new Vec3f((float) Math.cos(phi) * r, (float) Math.sin(phi) * r, (float) Math.sqrt((1.0f - rq))));
+		Vec3f V = normalize(new Vec3f((float) Math.cos(phi) * r, (float) Math.sin(phi) * r, (float) Math.sqrt((1.0f - rq))));
 
 		return rotateTowards(V, N);
 	}

@@ -24,6 +24,8 @@ public class Tracer
 	private Scene              m_scene;
 	private Camera             m_camera;
 	private Logger             m_log;
+	private int                m_cameras;
+	private int                m_camera_selected;
 
 	// Multithreading
 	private int                m_thread_amount;
@@ -39,88 +41,41 @@ public class Tracer
 		m_thread_amount = thread_amount;
 		m_samples = new Vec3f[resolution];
 
+		// Create the per pixel sample counter for each segment on the screen
 		if (m_thread_amount > 1)
 			m_samples_taken = new AtomicIntegerArray((m_thread_amount / 2) * (m_thread_amount / 2));
 		else
 			m_samples_taken = new AtomicIntegerArray(1);
 
+		// Initially clear all samples
 		clearSamples();
 
+		// Initialize the scene and use the camera @ id 0 from the scene object
 		m_scene = new Scene();
-		m_camera = m_scene.getCameras().get(0);
+		m_cameras = m_scene.getCameras().size();
+		m_camera_selected = 0;
+		m_camera = m_scene.getCameras().get(m_camera_selected);
 
 		m_log.printMsg("Tracer instance has been initalized, using " + m_thread_amount + " threads!");
+		m_log.printMsg("The current scene has " + m_cameras + " cameras.");
 	}
 
 	/*
-	 * Update the scene
+	 * Update the tracer
 	 */
 	public void update(float delta, Input input)
 	{
-		// Temporary way of handling input, this is just bad but whatever.. it kinda works
-		if (input.getKey(Input.KEY_W))
+		m_camera = m_scene.getCameras().get(m_camera_selected);
+		if (input.getKey(Input.KEY_PLUS))
 		{
-			m_camera.setPos(Vec3f.add(m_camera.getPos(), Vec3f.scale(m_camera.getForward(), delta)));
-		} else if (input.getKey(Input.KEY_S))
+			if (m_camera_selected < m_cameras - 1)
+				m_camera_selected += 1;
+		} else if (input.getKey(Input.KEY_MINUS))
 		{
-			m_camera.setPos(Vec3f.add(m_camera.getPos(), Vec3f.scale(m_camera.getBack(), delta)));
+			if (m_camera_selected > 0)
+				m_camera_selected -= 1;
 		}
-
-		if (input.getKey(Input.KEY_D))
-		{
-			m_camera.setPos(Vec3f.add(m_camera.getPos(), Vec3f.scale(m_camera.getRight(), delta)));
-		} else if (input.getKey(Input.KEY_A))
-		{
-			m_camera.setPos(Vec3f.add(m_camera.getPos(), Vec3f.scale(m_camera.getLeft(), delta)));
-		}
-
-		if (input.getKey(Input.KEY_R))
-		{
-			m_camera.setPos(Vec3f.add(m_camera.getPos(), Vec3f.scale(m_camera.getUp(), delta)));
-		} else if (input.getKey(Input.KEY_F))
-		{
-			m_camera.setPos(Vec3f.add(m_camera.getPos(), Vec3f.scale(m_camera.getDown(), delta)));
-		}
-
-		if (input.getKey(Input.KEY_UP))
-		{
-			Mat4f rotation = new Mat4f();
-
-			rotation.initRotation(delta * 45.0f, 0.0f, 0.0f);
-
-			m_camera.setForward(Mat4f.mul(rotation, m_camera.getForward(), 1.0f));
-
-			m_camera.calcDirections();
-		} else if (input.getKey(Input.KEY_DOWN))
-		{
-			Mat4f rotation = new Mat4f();
-
-			rotation.initRotation(-delta * 45.0f, 0.0f, 0.0f);
-
-			m_camera.setForward(Mat4f.mul(rotation, m_camera.getForward(), 1.0f));
-
-			m_camera.calcDirections();
-		}
-
-		if (input.getKey(Input.KEY_RIGHT))
-		{
-			Mat4f rotation = new Mat4f();
-
-			rotation.initRotation(0.0f, delta * 45.0f, 0.0f);
-
-			m_camera.setForward(Mat4f.mul(rotation, m_camera.getForward(), 1.0f));
-
-			m_camera.calcDirections();
-		} else if (input.getKey(Input.KEY_LEFT))
-		{
-			Mat4f rotation = new Mat4f();
-
-			rotation.initRotation(0.0f, -delta * 45.0f, 0.0f);
-
-			m_camera.setForward(Mat4f.mul(rotation, m_camera.getForward(), 1.0f));
-
-			m_camera.calcDirections();
-		}
+		m_camera.update(delta, input);
 	}
 
 	/*
@@ -302,14 +257,11 @@ public class Tracer
 		// Initialize the final color which will be returned in the end
 		Vec3f color_final = new Vec3f();
 
-		// If the object is reflective like a mirror, reflect a ray
+		// If the object's surface is reflective, reflect the ray
 		if (M.getReflectivity() > 0.0f)
 		{
 			Ray newRay;
-			if (M.getGlossiness() > 0.0f)
-				newRay = new Ray(P, Vec3f.normalize(Vec3f.add(Vec3f.reflect(RD, N), Vec3f.scale(Vec3f.randomHemisphere(N), M.getGlossiness()))));
-			else
-				newRay = new Ray(P, Vec3f.normalize(Vec3f.reflect(RD, N)));
+			newRay = new Ray(P, Vec3f.reflect(RD, N));
 
 			color_final = Vec3f.add(color_final, Vec3f.scale(pathTrace(newRay, n + 1), M.getReflectivity()));
 		}
@@ -318,10 +270,7 @@ public class Tracer
 		if (M.getRefractivity() > 0.0f)
 		{
 			Ray newRay;
-			if (M.getGlossiness() > 0.0f)
-				newRay = new Ray(P, Vec3f.normalize(Vec3f.add(Vec3f.refract(RD, N, 1.0f, M.getRefractivityIndex()), Vec3f.scale(Vec3f.randomHemisphere(N), M.getGlossiness()))));
-			else
-				newRay = new Ray(P, Vec3f.normalize(Vec3f.refract(RD, N, 1.0f, M.getRefractivityIndex())));
+			newRay = new Ray(P, Vec3f.refract(RD, N, 1.0f, M.getRefractivityIndex()));
 
 			color_final = Vec3f.add(color_final, Vec3f.scale(pathTrace(newRay, n + 1), M.getRefractivity()));
 		}
@@ -349,8 +298,8 @@ public class Tracer
 	 */
 	public Vec3f rayTrace(Ray ray, int n)
 	{
-		// Return black if max recursion depth has been exceeded
-		if (n > Config.max_recursion)
+		// Return black if recursion goes over 3 iterations
+		if (n > 3)
 			return COLOR_BLACK;
 
 		// Initialize some objects and variables
@@ -413,10 +362,19 @@ public class Tracer
 
 		// Diffuse objects
 		if (Vec3f.length(M.getReflectance()) > 0.0f)
-			color_final = Vec3f.add(color_final, Vec3f.scale(M.getReflectance(), 0.50f));
+			color_final = Vec3f.add(color_final, Vec3f.scale(M.getReflectance(), 0.75f));
 
 		// Clamp the final color
 		return MathUtils.clamp(color_final, 0.0f, 1.0f);
+	}
+
+	/*
+	 * Set the camera @ index to the primary camera
+	 */
+	public void setCamera(int index)
+	{
+		if (m_scene.getCameras().get(index) != null)
+			m_camera = m_scene.getCameras().get(index);
 	}
 
 	/*
