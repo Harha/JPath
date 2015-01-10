@@ -2,6 +2,7 @@ package to.us.harha.jpath.tracer;
 
 import to.us.harha.jpath.Input;
 import to.us.harha.jpath.util.math.Mat4f;
+import to.us.harha.jpath.util.math.Quaternion;
 import to.us.harha.jpath.util.math.Vec3f;
 
 public class Camera
@@ -10,6 +11,7 @@ public class Camera
 	private static final Vec3f YAXIS = new Vec3f(0.0f, 1.0f, 0.0f);
 
 	private Vec3f              m_pos;
+	private Quaternion         m_eye;
 	private Vec3f              m_forward;
 	private Vec3f              m_up;
 	private Vec3f              m_right;
@@ -19,13 +21,14 @@ public class Camera
 	public Camera(Vec3f pos, Vec3f forward, Vec3f up, Vec3f right, float speed, float sensitivity)
 	{
 		m_pos = pos;
+		m_eye = new Quaternion(new Vec3f(0.0f, 0.0f, 0.0f), 0.0f);
 		m_forward = forward;
 		m_up = up;
 		m_right = right;
 		m_speed = speed;
 		m_sensitivity = sensitivity;
 
-		calcDirections();
+		// calcDirections();
 	}
 
 	public void update(float delta, Input input)
@@ -56,24 +59,30 @@ public class Camera
 		// Camera eye vector rotation
 		if (input.getKey(Input.KEY_UP))
 		{
-			rotateX(m_sensitivity * delta);
+			Quaternion qx = new Quaternion(m_right, m_sensitivity * delta);
+			m_forward = Quaternion.mul(qx, m_forward);
 		} else if (input.getKey(Input.KEY_DOWN))
 		{
-			rotateX(-m_sensitivity * delta);
+			Quaternion qx = new Quaternion(m_right, -m_sensitivity * delta);
+			m_forward = Quaternion.mul(qx, m_forward);
 		}
 		if (input.getKey(Input.KEY_RIGHT))
 		{
-			rotateY(-m_sensitivity * delta);
+			Quaternion qy = new Quaternion(m_up, -m_sensitivity * delta);
+			m_forward = Quaternion.mul(qy, m_forward);
 		} else if (input.getKey(Input.KEY_LEFT))
 		{
-			rotateY(m_sensitivity * delta);
+			Quaternion qy = new Quaternion(m_up, m_sensitivity * delta);
+			m_forward = Quaternion.mul(qy, m_forward);
 		}
 		if (input.getKey(Input.KEY_Q))
 		{
-			rotateZ(m_sensitivity * delta);
+			Quaternion qz = new Quaternion(m_forward, m_sensitivity * delta);
+			m_right = Quaternion.mul(qz, m_right);
 		} else if (input.getKey(Input.KEY_E))
 		{
-			rotateZ(-m_sensitivity * delta);
+			Quaternion qz = new Quaternion(m_forward, -m_sensitivity * delta);
+			m_right = Quaternion.mul(qz, m_right);
 		}
 
 		// Refresh all direction vectors

@@ -22,7 +22,7 @@ public class Scene
 		m_objects = new ArrayList<TracerObject>();
 		m_cameras = new ArrayList<Camera>();
 
-		m_cameras.add(new Camera(new Vec3f(0.0f, 2.5f, 7.0f), new Vec3f(0.0f, 0.0f, -1.0f), new Vec3f(0.0f, 1.0f, 0.0f), new Vec3f(1.0f, 0.0f, 0.0f), 2.0f, 1.0f));
+		m_cameras.add(new Camera(new Vec3f(0.0f, 2.5f, 7.0f), new Vec3f(0.0f, 0.0f, -1.0f), new Vec3f(0.0f, 1.0f, 0.0f), new Vec3f(1.0f, 0.0f, 0.0f), 2.0f, 64.0f));
 		m_cameras.add(new Camera(new Vec3f(0.0f, 5.0f, -4.0f), new Vec3f(0.0f, 0.0f, 1.0f), new Vec3f(0.0f, 1.0f, 0.0f), new Vec3f(1.0f, 0.0f, 0.0f), 4.0f, 1.0f));
 
 		Mesh mesh_lamp = new Mesh("lamp.obj");
