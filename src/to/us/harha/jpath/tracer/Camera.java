@@ -70,10 +70,10 @@ public class Camera
 		}
 		if (input.getKey(Input.KEY_Q))
 		{
-			rotateZ(-m_sensitivity * delta);
+			rotateZ(m_sensitivity * delta);
 		} else if (input.getKey(Input.KEY_E))
 		{
-			rotateZ(m_sensitivity * delta);
+			rotateZ(-m_sensitivity * delta);
 		}
 
 		// Refresh all direction vectors

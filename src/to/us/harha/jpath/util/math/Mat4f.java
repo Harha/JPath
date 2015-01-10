@@ -31,18 +31,6 @@ public class Mat4f
 		m[3][0] = 0;		m[3][1] = 0;		m[3][2] = 0;		m[3][3] = 1;
 	}
 	
-	public void initRotation(Vec3f forward, Vec3f up, Vec3f right)
-	{
-		Vec3f f = forward;
-		Vec3f u = up;
-		Vec3f r = right;
-		
-		m[0][0] = r.x;		m[0][1] = r.y;		m[0][2] = r.z;		m[0][3] = 0;
-		m[1][0] = u.x;		m[1][1] = u.y;		m[1][2] = u.z;		m[1][3] = 0;
-		m[2][0] = f.x;		m[2][1] = f.y;		m[2][2] = f.z;		m[2][3] = 0;
-		m[3][0] = 0;		m[3][1] = 0;		m[3][2] = 0;		m[3][3] = 1;
-	}
-	
 	public void initScale(float x, float y, float z)
 	{
 		m[0][0] = x;		m[0][1] = 0;		m[0][2] = 0;		m[0][3] = 0;
@@ -53,54 +41,30 @@ public class Mat4f
 	
 	public void initRotation(float x, float y, float z)
 	{
-		Mat4f rx = new Mat4f();
-		Mat4f ry = new Mat4f();
-		Mat4f rz = new Mat4f();
+		Mat4f Mx = new Mat4f();
+		Mat4f My = new Mat4f();
+		Mat4f Mz = new Mat4f();
 		
-		x = (float) Math.toRadians(x);
-		y = (float) Math.toRadians(y);
-		z = (float) Math.toRadians(z);
+		Mx.initIdentity();
+		My.initIdentity();
+		Mz.initIdentity();
 		
-		float cosx = (float) Math.cos(x);
-		float cosy = (float) Math.cos(y);
-		float cosz = (float) Math.cos(z);
-		float sinx = (float) Math.sin(x);
-		float siny = (float) Math.sin(y);
-		float sinz = (float) Math.sin(z);
+		Mx.m[1][1] = (float) Math.cos(Math.toRadians(x));
+		Mx.m[1][2] = (float) Math.sin(Math.toRadians(x));
+		Mx.m[2][1] = (float) -Math.sin(Math.toRadians(x));
+		Mx.m[2][2] = (float) Math.cos(Math.toRadians(x));
 		
-		rx.m[0][0] = cosz;		rx.m[0][1] = -sinz;		rx.m[0][2] = 0;			rx.m[0][3] = 0;
-		rx.m[1][0] = sinz;		rx.m[1][1] = cosz;		rx.m[1][2] = 0;			rx.m[1][3] = 0;
-		rx.m[2][0] = 0;			rx.m[2][1] = 0;			rx.m[2][2] = 1;			rx.m[2][3] = 0;
-		rx.m[3][0] = 0;			rx.m[3][1] = 0;			rx.m[3][2] = 0;			rx.m[3][3] = 1;
+		My.m[0][0] = (float) Math.cos(Math.toRadians(y));
+		My.m[0][2] = (float) -Math.sin(Math.toRadians(y));
+		My.m[2][0] = (float) Math.sin(Math.toRadians(y));
+		My.m[2][2] = (float) Math.cos(Math.toRadians(y));
 		
-		ry.m[0][0] = 1;			ry.m[0][1] = 0;			ry.m[0][2] = 0;			ry.m[0][3] = 0;
-		ry.m[1][0] = 0;			ry.m[1][1] = cosx;		ry.m[1][2] = -sinx;		ry.m[1][3] = 0;
-		ry.m[2][0] = 0;			ry.m[2][1] = sinx;		ry.m[2][2] = cosx;		ry.m[2][3] = 0;
-		ry.m[3][0] = 0;			ry.m[3][1] = 0;			ry.m[3][2] = 0;			ry.m[3][3] = 1;
+		Mz.m[0][0] = (float) Math.cos(Math.toRadians(z));
+		Mz.m[0][1] = (float) Math.sin(Math.toRadians(z));
+		Mz.m[1][0] = (float) -Math.sin(Math.toRadians(z));
+		Mz.m[1][1] = (float) Math.cos(Math.toRadians(z));
 		
-		rz.m[0][0] = cosy;		rz.m[0][1] = 0;			rz.m[0][2] = -siny;		rz.m[0][3] = 0;
-		rz.m[1][0] = 0;			rz.m[1][1] = 1;			rz.m[1][2] = 0;			rz.m[1][3] = 0;
-		rz.m[2][0] = siny;		rz.m[2][1] = 0;			rz.m[2][2] = cosy;		rz.m[2][3] = 0;
-		rz.m[3][0] = 0;			rz.m[3][1] = 0;			rz.m[3][2] = 0;			rz.m[3][3] = 1;
-		
-		m = Mat4f.mul(rz, Mat4f.mul(ry, rx)).getM();
-	}
-	
-	public void initRotation(Vec3f forward, Vec3f up)
-	{
-		Vec3f f = forward;
-		f = Vec3f.normalize(f);
-		
-		Vec3f r = up;
-		r = Vec3f.normalize(r);
-		r = Vec3f.cross(r, f);
-		
-		Vec3f u = Vec3f.cross(f, r);
-		
-		Mat4f m = new Mat4f();
-		m.initRotation(f, u, r);
-		
-		this.m = m.getM();
+		m = Mat4f.mul(Mz, Mat4f.mul(My, Mx)).getM();
 	}
 	
 	public static Mat4f mul(Mat4f left, Mat4f right)

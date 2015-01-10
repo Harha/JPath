@@ -21,6 +21,11 @@ public class Primitive
 		return null;
 	}
 
+	public void calcNormal()
+	{
+
+	}
+
 	public Vec3f[] getVertices()
 	{
 		return m_vertices;
@@ -39,6 +44,15 @@ public class Primitive
 	public void setVertex(int i, Vec3f vertex)
 	{
 		m_vertices[i] = vertex;
+	}
+
+	public void mulVertices(Mat4f m)
+	{
+		for (int i = 0; i < m_vertices.length; i++)
+		{
+			m_vertices[i] = Mat4f.mul(m, m_vertices[i], 1.0f);
+		}
+		calcNormal();
 	}
 
 }

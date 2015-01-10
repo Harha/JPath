@@ -285,7 +285,7 @@ public class Tracer
 			Vec3f BRDF = Vec3f.scale(M.getReflectance(), 2.0f * NdotD);
 			Vec3f REFLECTED = pathTrace(newRay, n + 1);
 
-			color_final = Vec3f.add(color_final, Vec3f.add(M.getEmittance(), Vec3f.scale(BRDF, REFLECTED)));
+			color_final = Vec3f.add(color_final, Vec3f.scale(BRDF, REFLECTED));
 		}
 
 		// Simple radiance clamping to avoid fireflies

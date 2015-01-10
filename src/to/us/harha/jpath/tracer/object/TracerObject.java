@@ -5,6 +5,7 @@ import java.util.ArrayList;
 import to.us.harha.jpath.util.math.Mat4f;
 import to.us.harha.jpath.util.math.Primitive;
 import to.us.harha.jpath.util.math.Transform;
+import to.us.harha.jpath.util.math.Vec3f;
 
 public class TracerObject
 {
@@ -38,20 +39,7 @@ public class TracerObject
 	{
 		for (Primitive p : m_primitives)
 		{
-			float length = p.getVertices().length;
-
-			if (length > 1)
-			{
-				for (int i = 0; i < p.getVertices().length; i += 3)
-				{
-					p.setVertex(i, Mat4f.mul(m_transform.getTransformation(), p.getVertex(i), 1.0f));
-					p.setVertex(i + 1, Mat4f.mul(m_transform.getTransformation(), p.getVertex(i + 1), 1.0f));
-					p.setVertex(i + 2, Mat4f.mul(m_transform.getTransformation(), p.getVertex(i + 2), 1.0f));
-				}
-			} else
-			{
-				p.setVertex(0, Mat4f.mul(m_transform.getTransformation(), p.getVertex(0), 1.0f));
-			}
+			p.mulVertices(m_transform.getTransformation());
 		}
 	}
 

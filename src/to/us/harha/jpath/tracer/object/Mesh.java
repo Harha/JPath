@@ -83,6 +83,7 @@ public class Mesh
 				Vec3f vertex_2 = new Vec3f(vertices.get(0 + index_1 * 3), vertices.get(1 + index_1 * 3), vertices.get(2 + index_1 * 3));
 				Vec3f vertex_3 = new Vec3f(vertices.get(0 + index_2 * 3), vertices.get(1 + index_2 * 3), vertices.get(2 + index_2 * 3));
 				Vec3f[] verts = new Vec3f[] { vertex_1, vertex_2, vertex_3 };
+				Main.LOG.printMsg("v1: " + vertex_1.toString() + " | v2: " + vertex_2.toString() + " | v3: " + vertex_3.toString());
 				m_primitives.add(new Triangle(verts));
 			}
 

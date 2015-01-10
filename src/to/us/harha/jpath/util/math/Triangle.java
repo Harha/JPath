@@ -51,7 +51,8 @@ public class Triangle extends Primitive
 		return x;
 	}
 
-	private void calcNormal()
+	@Override
+	public void calcNormal()
 	{
 		m_edge_a = Vec3f.sub(m_vertices[1], m_vertices[0]);
 		m_edge_b = Vec3f.sub(m_vertices[2], m_vertices[0]);
