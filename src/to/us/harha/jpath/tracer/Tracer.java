@@ -282,7 +282,7 @@ public class Tracer
 			Ray newRay = new Ray(P, Vec3f.randomHemisphere(N));
 
 			float NdotD = Math.abs(Vec3f.dot(N, newRay.getDir()));
-			Vec3f BRDF = Vec3f.scale(Vec3f.scale(M.getReflectance(), (float) (1.0 / Math.PI)), 2.0f * NdotD);
+			Vec3f BRDF = Vec3f.scale(M.getReflectance(), 2.0f * NdotD);
 			Vec3f REFLECTED = pathTrace(newRay, n + 1);
 
 			color_final = Vec3f.add(color_final, Vec3f.scale(BRDF, REFLECTED));

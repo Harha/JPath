@@ -26,20 +26,6 @@ public class Quaternion
 		return String.format("Quaternion[%.5f, %.5f, %.5f, %.5f]", w, v.x, v.y, v.z);
 	}
 
-	public boolean equals(Quaternion q)
-	{
-		if (this.v.equals(q.v) && this.w == q.w)
-			return true;
-		else
-			return false;
-	}
-
-	public static void set(Quaternion q1, Quaternion q2)
-	{
-		q1.w = q2.w;
-		Vec3f.set(q1.v, q2.v);
-	}
-
 	public static Quaternion conjugate(Quaternion q)
 	{
 		Quaternion r = new Quaternion();
@@ -71,24 +57,6 @@ public class Quaternion
 
 		Vec3f vcV = Vec3f.cross(q.v, v);
 		return Vec3f.add(Vec3f.add(v, Vec3f.scale(vcV, 2.0f * q.w)), Vec3f.scale(Vec3f.cross(q.v, vcV), 2.0f));
-	}
-
-	public static Quaternion normalize(Quaternion q)
-	{
-		Quaternion r = new Quaternion();
-
-		float length = length(q);
-		r.w = q.w / length;
-		r.v.x = q.v.x / length;
-		r.v.y = q.v.y / length;
-		r.v.z = q.v.z / length;
-
-		return r;
-	}
-
-	public static float length(Quaternion q)
-	{
-		return (float) Math.sqrt(q.w * q.w + q.v.x * q.v.x + q.v.y * q.v.y + q.v.z * q.v.z);
 	}
 
 }

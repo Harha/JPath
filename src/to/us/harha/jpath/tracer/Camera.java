@@ -21,11 +21,14 @@ public class Camera
 	public Camera(Vec3f pos, Vec3f forward, Vec3f up, Vec3f right, float speed, float sensitivity)
 	{
 		m_pos = pos;
+		m_eye = new Quaternion(new Vec3f(0.0f, 0.0f, 0.0f), 0.0f);
 		m_forward = forward;
 		m_up = up;
 		m_right = right;
 		m_speed = speed;
 		m_sensitivity = sensitivity;
+
+		// calcDirections();
 	}
 
 	public void update(float delta, Input input)
@@ -56,28 +59,40 @@ public class Camera
 		// Camera eye vector rotation
 		if (input.getKey(Input.KEY_UP))
 		{
-			rotate(m_right, m_sensitivity * delta);
+			Quaternion qx = new Quaternion(m_right, m_sensitivity * delta);
+			m_forward = Quaternion.mul(qx, m_forward);
 		} else if (input.getKey(Input.KEY_DOWN))
 		{
-			rotate(m_right, -m_sensitivity * delta);
+			Quaternion qx = new Quaternion(m_right, -m_sensitivity * delta);
+			m_forward = Quaternion.mul(qx, m_forward);
 		}
 		if (input.getKey(Input.KEY_RIGHT))
 		{
-			rotate(m_up, -m_sensitivity * delta);
+			Quaternion qy = new Quaternion(m_up, -m_sensitivity * delta);
+			m_forward = Quaternion.mul(qy, m_forward);
 		} else if (input.getKey(Input.KEY_LEFT))
 		{
-			rotate(m_up, m_sensitivity * delta);
+			Quaternion qy = new Quaternion(m_up, m_sensitivity * delta);
+			m_forward = Quaternion.mul(qy, m_forward);
 		}
 		if (input.getKey(Input.KEY_Q))
 		{
-			rotate(m_forward, m_sensitivity * delta);
+			Quaternion qz = new Quaternion(m_forward, m_sensitivity * delta);
+			m_right = Quaternion.mul(qz, m_right);
 		} else if (input.getKey(Input.KEY_E))
 		{
-			rotate(m_forward, -m_sensitivity * delta);
+			Quaternion qz = new Quaternion(m_forward, -m_sensitivity * delta);
+			m_right = Quaternion.mul(qz, m_right);
 		}
 
 		// Refresh all direction vectors
-		recalcViewVectors();
+		calcDirections();
+	}
+
+	public void calcDirections()
+	{
+		m_up = Vec3f.normalize(Vec3f.cross(m_right, m_forward));
+		m_right = Vec3f.normalize(Vec3f.cross(m_forward, m_up));
 	}
 
 	public void move(Vec3f direction, float amount)
@@ -85,18 +100,19 @@ public class Camera
 		m_pos = Vec3f.add(m_pos, Vec3f.scale(direction, amount));
 	}
 
-	public void rotate(Vec3f axis, float theta)
+	public void rotateX(float angle)
 	{
-		Quaternion q = new Quaternion(axis, theta);
-		m_forward = Quaternion.mul(q, m_forward);
-		m_up = Quaternion.mul(q, m_up);
-		m_right = Quaternion.mul(q, m_right);
+		m_forward = Vec3f.normalize(Vec3f.rotate(m_forward, m_right, angle));
 	}
 
-	public void recalcViewVectors()
+	public void rotateY(float angle)
 	{
-		m_up = Vec3f.normalize(Vec3f.cross(m_right, m_forward));
-		m_right = Vec3f.normalize(Vec3f.cross(m_forward, m_up));
+		m_forward = Vec3f.normalize(Vec3f.rotate(m_forward, m_up, angle));
+	}
+
+	public void rotateZ(float angle)
+	{
+		m_right = Vec3f.normalize(Vec3f.rotate(m_right, m_forward, angle));
 	}
 
 	public Vec3f getPos()
