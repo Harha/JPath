@@ -5,19 +5,10 @@ import java.util.concurrent.ThreadLocalRandom;
 public class Vec3f
 {
 
-	// Vector x-coordinate
 	public float x;
-	// Vector y-coordinate
 	public float y;
-	// Vector z-coordinate
 	public float z;
 
-	/*
-	 * Constructor Vec3f(float x, float y, float z);
-	 * @param x: Vector x-coordinate
-	 * @param y: Vector y-coordinate
-	 * @param z: Vector z-coordinate
-	 */
 	public Vec3f(float x, float y, float z)
 	{
 		this.x = x;
@@ -25,10 +16,6 @@ public class Vec3f
 		this.z = z;
 	}
 
-	/*
-	 * Constructor Vec3f(float f);
-	 * @@param f: Sets the initial value for all vector components
-	 */
 	public Vec3f(float f)
 	{
 		x = f;
@@ -36,10 +23,6 @@ public class Vec3f
 		z = f;
 	}
 
-	/*
-	 * Constructor Vec3f();
-	 * @info: Blank vector constructor, all components are equal to 0.0f
-	 */
 	public Vec3f()
 	{
 		x = 0.0f;
@@ -51,6 +34,21 @@ public class Vec3f
 	public String toString()
 	{
 		return String.format("Vec3f[%.5f, %.5f, %.5f]", x, y, z);
+	}
+
+	public boolean equals(Vec3f v)
+	{
+		if (this.x == v.x && this.y == v.y && this.z == v.z)
+			return true;
+		else
+			return false;
+	}
+
+	public static void set(Vec3f v, Vec3f w)
+	{
+		v.x = w.x;
+		v.y = w.y;
+		v.z = w.z;
 	}
 
 	public static Vec3f lerp(Vec3f v, Vec3f u, float lerpFactor)
@@ -159,10 +157,10 @@ public class Vec3f
 	public static Vec3f refract(Vec3f I, Vec3f N, float i1, float i2)
 	{
 		float NdotI = dot(I, N), n = (NdotI > 0.0f) ? i2 / i1 : i1 / i2;
-		float cos_t = 1.0f - n * n * (1.0f - NdotI * NdotI);
+		float cos_t = 1.0f - n * (1.0f - NdotI * NdotI);
 
 		if (cos_t < 0.0f)
-			return new Vec3f(0.0f);
+			return reflect(I, N);
 
 		return add(scale(I, n), scale(N, n * NdotI - (float) Math.sqrt(cos_t)));
 	}

@@ -3,9 +3,14 @@ package to.us.harha.jpath.util.math;
 public class Transform
 {
 
-	private Vec3f m_position;
-	private Vec3f m_rotation;
-	private Vec3f m_scale;
+	private Vec3f      m_position;
+	//private Quaternion m_rotation;
+	private Vec3f	   m_rotation;
+	private Vec3f      m_scale;
+
+	private Vec3f      m_oldPosition;
+	private Quaternion m_oldRotation;
+	private Vec3f      m_oldScale;
 
 	public Transform()
 	{
@@ -14,11 +19,46 @@ public class Transform
 		m_scale = new Vec3f(1.0f);
 	}
 
-	public Transform(Vec3f pos, Vec3f rot, Vec3f scale)
+	public Transform(Vec3f position, Vec3f rotation, Vec3f scale)
 	{
-		m_position = pos;
-		m_rotation = rot;
+		m_position = position;
+		m_rotation = rotation;
 		m_scale = scale;
+	}
+
+	public void update()
+	{
+		setOldComponents();
+	}
+	
+	public void setOldComponents()
+	{
+		if (m_oldPosition == null)
+		{
+			Vec3f.set(m_oldPosition, m_position);
+		}
+		if (m_oldRotation == null)
+		{
+			//Vec3f.set(m_oldRotation, m_rotation);
+		}
+		if (m_oldScale == null)
+		{
+			Vec3f.set(m_oldScale, m_scale);
+		}
+	}
+
+	public boolean hasChanged()
+	{
+		if (!m_position.equals(m_oldPosition))
+			return true;
+
+		if (!m_rotation.equals(m_oldRotation))
+			return true;
+
+		if (!m_scale.equals(m_oldScale))
+			return true;
+
+		return false;
 	}
 
 	public Mat4f getTransformation()
