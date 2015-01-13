@@ -21,6 +21,7 @@ public class Camera
 	public Camera(Vec3f pos, Vec3f forward, Vec3f up, Vec3f right, float speed, float sensitivity)
 	{
 		m_pos = pos;
+		m_eye = new Quaternion(0.0f, forward.x, forward.y, forward.z);
 		m_forward = forward;
 		m_up = up;
 		m_right = right;
@@ -87,10 +88,23 @@ public class Camera
 
 	public void rotate(Vec3f axis, float theta)
 	{
-		Quaternion q = new Quaternion(axis, theta);
-		m_forward = Quaternion.mul(q, m_forward);
-		m_up = Quaternion.mul(q, m_up);
-		m_right = Quaternion.mul(q, m_right);
+		Quaternion q = new Quaternion().createFromAxisAngle(axis.x, axis.y, axis.z, theta);
+		Quaternion wForward = new Quaternion(0.0f, m_forward.x, m_forward.y, m_forward.z);
+		Quaternion wUp = new Quaternion(0.0f, m_up.x, m_up.y, m_up.z);
+		Quaternion wRight = new Quaternion(0.0f, m_right.x, m_right.y, m_right.z);
+		Quaternion q_inv = Quaternion.conjugate(q);
+
+		// Quaternion resultForward = Quaternion.normalize(Quaternion.mul(Quaternion.mul(q, wForward), q_inv));
+		Quaternion resultUp = Quaternion.normalize(Quaternion.mul(Quaternion.mul(q, wUp), q_inv));
+		Quaternion resultRight = Quaternion.normalize(Quaternion.mul(Quaternion.mul(q, wRight), q_inv));
+
+		m_forward = Vec3f.normalize(Quaternion.mul(q, m_forward));
+		m_up.x = resultUp.x;
+		m_up.y = resultUp.y;
+		m_up.z = resultUp.z;
+		m_right.x = resultRight.x;
+		m_right.y = resultRight.y;
+		m_right.z = resultRight.z;
 	}
 
 	public void recalcViewVectors()

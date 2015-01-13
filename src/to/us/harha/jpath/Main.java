@@ -40,13 +40,14 @@ public class Main
 		engine = new Engine(display);
 		engine.start();
 	}
-
+	
 	// Testing quaternions
 	/*
 	public static void main(String[] args)
 	{
 		Locale.setDefault(new Locale("en", "UK"));
 
+		
 		Quaternion q1 = new Quaternion(new Vec3f(0, 1, 0), 22.0f);
 		Quaternion q2 = new Quaternion(new Vec3f(1, 0, 0), 45.0f);
 		Quaternion q2q1 = Quaternion.mul(q2, q1);
@@ -58,6 +59,18 @@ public class Main
 		LOG.printMsg("q1 * q2:" + q2q1.toString() + " Length: " + Quaternion.length(q2q1));
 		LOG.printMsg("v1: " + v1.toString());
 		LOG.printMsg("q2q1v1: " + q2q1v1.toString());
+		Quaternion q = new Quaternion(new Vec3f(1.0f, 0.0f, 0.0f), 90.0f);
+		Vec3f v = new Vec3f(0.0f, 0.0f, -5.0f);
+		Vec3f qResult = Quaternion.mul(q, v);
+		LOG.printMsg("qResult: " + qResult.toString());
+		*/
+		/*
+		Quaternion q = new Quaternion().createFromAxisAngle(1, 0, 0, 90);
+		Quaternion w = new Quaternion(0.0f, 0.0f, 0.0f, -5.0f);
+		Quaternion q_inv = Quaternion.conjugate(q);
+		Quaternion result = Quaternion.normalize(Quaternion.mul(Quaternion.mul(q, w), q_inv));
+
+		LOG.printMsg(result.toString() + " " + Quaternion.length(result));
 	}
 	*/
 
