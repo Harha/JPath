@@ -11,7 +11,7 @@ public class Camera
 	private static final Vec3f YAXIS = new Vec3f(0.0f, 1.0f, 0.0f);
 
 	private Vec3f              m_pos;
-	private Quaternion         m_eye;
+	private Quaternion         m_look;
 	private Vec3f              m_forward;
 	private Vec3f              m_up;
 	private Vec3f              m_right;
@@ -21,7 +21,7 @@ public class Camera
 	public Camera(Vec3f pos, Vec3f forward, Vec3f up, Vec3f right, float speed, float sensitivity)
 	{
 		m_pos = pos;
-		m_eye = new Quaternion(0.0f, forward.x, forward.y, forward.z);
+		m_look = new Quaternion(0.0f, forward.x, forward.y, forward.z);
 		m_forward = forward;
 		m_up = up;
 		m_right = right;
@@ -76,9 +76,6 @@ public class Camera
 		{
 			rotate(m_forward, -m_sensitivity * delta);
 		}
-
-		// Refresh all direction vectors
-		recalcViewVectors();
 	}
 
 	public void move(Vec3f direction, float amount)
@@ -89,22 +86,35 @@ public class Camera
 	public void rotate(Vec3f axis, float theta)
 	{
 		Quaternion q = new Quaternion().createFromAxisAngle(axis.x, axis.y, axis.z, theta);
+		Quaternion q_inv = Quaternion.conjugate(q);
+		m_look = Quaternion.normalize(Quaternion.mul(Quaternion.mul(q, m_look), q_inv));
+		Quaternion qRight = Quaternion.normalize(Quaternion.mul(Quaternion.mul(q, new Quaternion(0.0f, m_right.x, m_right.y, m_right.z)), q_inv));
+		Vec3f.set(m_forward, new Vec3f(m_look.x, m_look.y, m_look.z));
+		Vec3f.set(m_right, new Vec3f(qRight.x, qRight.y, qRight.z));
+		recalcViewVectors();
+
+		/*
+		Quaternion q = new Quaternion().createFromAxisAngle(axis.x, axis.y, axis.z, theta);
 		Quaternion wForward = new Quaternion(0.0f, m_forward.x, m_forward.y, m_forward.z);
 		Quaternion wUp = new Quaternion(0.0f, m_up.x, m_up.y, m_up.z);
 		Quaternion wRight = new Quaternion(0.0f, m_right.x, m_right.y, m_right.z);
 		Quaternion q_inv = Quaternion.conjugate(q);
 
-		// Quaternion resultForward = Quaternion.normalize(Quaternion.mul(Quaternion.mul(q, wForward), q_inv));
+		Quaternion resultForward = Quaternion.normalize(Quaternion.mul(Quaternion.mul(q, wForward), q_inv));
 		Quaternion resultUp = Quaternion.normalize(Quaternion.mul(Quaternion.mul(q, wUp), q_inv));
 		Quaternion resultRight = Quaternion.normalize(Quaternion.mul(Quaternion.mul(q, wRight), q_inv));
 
-		m_forward = Vec3f.normalize(Quaternion.mul(q, m_forward));
+		//m_forward = Vec3f.normalize(Quaternion.mul(q, m_forward));
+		m_forward.x = resultForward.x;
+		m_forward.y = resultForward.y;
+		m_forward.z = resultForward.z;
 		m_up.x = resultUp.x;
 		m_up.y = resultUp.y;
 		m_up.z = resultUp.z;
 		m_right.x = resultRight.x;
 		m_right.y = resultRight.y;
 		m_right.z = resultRight.z;
+		*/
 	}
 
 	public void recalcViewVectors()
@@ -116,6 +126,11 @@ public class Camera
 	public Vec3f getPos()
 	{
 		return m_pos;
+	}
+
+	public Quaternion getLook()
+	{
+		return m_look;
 	}
 
 	public Vec3f getForward()

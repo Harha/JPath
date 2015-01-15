@@ -1,5 +1,7 @@
 package to.us.harha.jpath;
 
+import java.awt.Color;
+import java.awt.Font;
 import java.awt.Graphics;
 import java.awt.image.BufferStrategy;
 import java.util.Arrays;
@@ -20,6 +22,7 @@ public class Engine
 	private Logger                   m_log;
 	private Tracer                   m_tracer;
 	private Input                    m_input;
+	private Font                     m_font;
 
 	// Multithreading
 	private int                      m_cpu_cores;
@@ -56,6 +59,9 @@ public class Engine
 		// Create input stuff
 		m_input = new Input();
 		m_display.addKeyListener(m_input);
+
+		// Create random stuff
+		m_font = new Font("Terminus", Font.BOLD, 12);
 
 		// Create the final tracer object
 		m_tracer = new Tracer(m_thread_amount, m_display.getWidth() * m_display.getHeight());
@@ -235,6 +241,15 @@ public class Engine
 
 		Graphics g = bs.getDrawGraphics();
 		g.drawImage(m_display.getImage(), 0, 0, m_display.getWidth() * m_display.getScale(), m_display.getHeight() * m_display.getScale(), null);
+		
+		// Render debug information if Config.debug_enabled is true
+		if (Config.debug_enabled)
+		{
+			g.setColor(Color.WHITE);
+			g.setFont(m_font);
+			g.drawString(m_tracer.getCurrentCamera().getLook().toString(), 16, 16);
+		}
+		
 		g.dispose();
 		bs.show();
 	}

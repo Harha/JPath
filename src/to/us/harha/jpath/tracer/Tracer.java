@@ -396,6 +396,14 @@ public class Tracer
 	}
 
 	/*
+	 * Get the current chosen camera object
+	 */
+	public Camera getCurrentCamera()
+	{
+		return m_camera;
+	}
+
+	/*
 	 * Get the amount of samples taken per pixel of a chosen cell @ index
 	 */
 	public int getSamplesPerPixel(int index)
