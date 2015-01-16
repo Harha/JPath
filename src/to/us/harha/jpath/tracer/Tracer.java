@@ -32,8 +32,9 @@ public class Tracer
 	private AtomicIntegerArray m_samples_taken;
 
 	// Static constant objects to minimize object creation during tracing
-	private static final Vec3f COLOR_BLACK = new Vec3f();
-	private static final Vec3f COLOR_DEBUG = new Vec3f(1.0f, 0.0f, 1.0f);
+	private static final Vec3f COLOR_BLACK   = new Vec3f();
+	private static final Vec3f COLOR_AMBIENT = new Vec3f(0.05f);
+	private static final Vec3f COLOR_DEBUG   = new Vec3f(1.0f, 0.0f, 1.0f);
 
 	public Tracer(int thread_amount, int resolution)
 	{
@@ -118,7 +119,7 @@ public class Tracer
 				Ray ray = Ray.calcCameraRay(m_camera, display.getWidth(), display.getHeight(), display.getAR(), x, y);
 
 				// Do the path tracing
-				m_samples[index] = Vec3f.add(m_samples[index], pathTrace(ray, 0));
+				m_samples[index] = Vec3f.add(m_samples[index], pathTrace(ray, 0, 0.0f));
 
 				// Draw the pixel
 				display.drawPixelVec3fAveraged(index, m_samples[index], m_samples_taken.get(0));
@@ -168,7 +169,7 @@ public class Tracer
 						Ray ray = Ray.calcSupersampledCameraRay(m_camera, display.getWidth(), display.getHeight(), display.getAR(), x, y, Config.ss_jitter);
 
 						// Do the path tracing
-						sample = Vec3f.add(sample, pathTrace(ray, 0));
+						sample = Vec3f.add(sample, pathTrace(ray, 0, 0.0f));
 					}
 
 					// Get the average color of the sample
@@ -183,7 +184,7 @@ public class Tracer
 					Ray ray = Ray.calcCameraRay(m_camera, display.getWidth(), display.getHeight(), display.getAR(), x, y);
 
 					// Do the path tracing
-					m_samples[index_screen] = Vec3f.add(m_samples[index_screen], pathTrace(ray, 0));
+					m_samples[index_screen] = Vec3f.add(m_samples[index_screen], pathTrace(ray, 0, 0.0f));
 				}
 
 				// Draw the pixel
@@ -205,11 +206,13 @@ public class Tracer
 	 * Path tracing
 	 * n = recursion level
 	 */
-	public Vec3f pathTrace(Ray ray, int n)
+	public Vec3f pathTrace(Ray ray, int n, float radiance)
 	{
-		// Return black if max recursion depth has been exceeded
-		if (n > Config.max_recursion)
-			return COLOR_BLACK;
+		// Return the ambient color if maximum recursion depth or minimum radiance wasn't exceeded
+		if (n > Config.max_recursion || n > 4 && radiance < Config.min_radiance)
+		{
+			return COLOR_AMBIENT;
+		}
 
 		// Initialize some objects and variables
 		Intersection iSection = null;
@@ -263,7 +266,7 @@ public class Tracer
 			Ray newRay;
 			newRay = new Ray(P, Vec3f.reflect(RD, N));
 
-			color_final = Vec3f.add(color_final, Vec3f.scale(pathTrace(newRay, n + 1), M.getReflectivity()));
+			color_final = Vec3f.add(color_final, Vec3f.scale(pathTrace(newRay, n + 1, 0.0f), M.getReflectivity()));
 		}
 
 		// If the object is refractive like glass, refract the ray
@@ -272,7 +275,7 @@ public class Tracer
 			Ray newRay;
 			newRay = new Ray(P, Vec3f.refract(RD, N, 1.0f, M.getRefractivityIndex()));
 
-			color_final = Vec3f.add(color_final, Vec3f.scale(pathTrace(newRay, n + 1), M.getRefractivity()));
+			color_final = Vec3f.add(color_final, Vec3f.scale(pathTrace(newRay, n + 1, 0.0f), M.getRefractivity()));
 		}
 
 		// Calculate the diffuse lighting if reflectance is greater than 0.0
@@ -282,8 +285,8 @@ public class Tracer
 			Ray newRay = new Ray(P, Vec3f.randomHemisphere(N));
 
 			float NdotD = Math.abs(Vec3f.dot(N, newRay.getDir()));
-			Vec3f BRDF = Vec3f.scale(Vec3f.scale(M.getReflectance(), (float) (1.0 / Math.PI)), 2.0f * NdotD);
-			Vec3f REFLECTED = pathTrace(newRay, n + 1);
+			Vec3f BRDF = Vec3f.scale(M.getReflectance(), 2.0f * NdotD);
+			Vec3f REFLECTED = pathTrace(newRay, n + 1, Vec3f.length(BRDF));
 
 			color_final = Vec3f.add(color_final, Vec3f.scale(BRDF, REFLECTED));
 		}

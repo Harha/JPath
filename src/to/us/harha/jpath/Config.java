@@ -22,6 +22,7 @@ public class Config
 	public static boolean      debug_enabled;
 	public static boolean      saving_enabled;
 	public static int          max_recursion;
+	public static float		   min_radiance;
 	public static int          max_samples_per_pixel;
 	public static double       max_frames_per_second;
 	public static boolean      mt_enabled;
@@ -65,6 +66,7 @@ public class Config
 			p.setProperty("debug_enabled", "true");
 			p.setProperty("saving_enabled", "false");
 			p.setProperty("max_recursion", "4");
+			p.setProperty("min_radiance", "1e-2");
 			p.setProperty("max_samples_per_pixel", "1000");
 			p.setProperty("max_frames_per_second", "1000.0");
 			p.setProperty("mt_enabled", "true");
@@ -105,6 +107,7 @@ public class Config
 			debug_enabled = Boolean.valueOf(p.getProperty("debug_enabled"));
 			saving_enabled = Boolean.valueOf(p.getProperty("saving_enabled"));
 			max_recursion = Integer.valueOf(p.getProperty("max_recursion"));
+			min_radiance = Float.valueOf(p.getProperty("min_radiance"));
 			max_samples_per_pixel = Integer.valueOf(p.getProperty("max_samples_per_pixel"));
 			max_frames_per_second = Double.valueOf(p.getProperty("max_frames_per_second"));
 			mt_enabled = Boolean.valueOf(p.getProperty("mt_enabled"));

@@ -164,6 +164,7 @@ public class Vec3f
 
 		return add(scale(I, n), scale(N, n * NdotI - (float) Math.sqrt(cos_t)));
 	}
+	
 
 	public static Vec3f randomHemisphere(Vec3f N)
 	{

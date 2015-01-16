@@ -21,6 +21,10 @@ public class Plane extends Primitive
 
 		P = Vec3f.sub(m_vertices[0], r.getPos());
 		d = Vec3f.dot(m_norm, r.getDir());
+		
+		if (d > 0.0f)
+			return null;
+		
 		t = Vec3f.dot(P, m_norm) / d;
 
 		if (t < Main.EPSILON)
