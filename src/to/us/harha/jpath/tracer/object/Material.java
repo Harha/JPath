@@ -9,27 +9,27 @@ public class Material
     private Vec3f m_reflectance;
     private float m_reflectivity;
     private float m_refractivity;
-    private float m_refractivityIndex;
+    private float m_indexOfRefraction;
     private float m_glossiness;
 
-    public Material(Vec3f emittance, Vec3f reflectance, float reflectivity, float refractivity, float refractivityIndex, float glossiness)
+    public Material(Vec3f emittance, Vec3f reflectance, float reflectivity, float refractivity, float indexOfRefraction, float glossiness)
     {
         m_emittance = emittance;
         m_reflectance = reflectance;
         m_reflectivity = reflectivity;
         m_refractivity = refractivity;
-        m_refractivityIndex = refractivityIndex;
+        m_indexOfRefraction = indexOfRefraction;
         m_glossiness = glossiness;
     }
 
-    public Material(Vec3f reflectance, float reflectivity, float refractivity, float refractivityIndex, float glossiness)
+    public Material(Vec3f reflectance, float reflectivity, float refractivity, float indexOfRefraction, float glossiness)
     {
         m_emittance = new Vec3f();
         m_reflectance = reflectance;
         m_reflectivity = reflectivity;
         m_glossiness = glossiness;
         m_refractivity = refractivity;
-        m_refractivityIndex = refractivityIndex;
+        m_indexOfRefraction = indexOfRefraction;
     }
 
     public Material(Vec3f emittance, Vec3f reflectance)
@@ -38,7 +38,7 @@ public class Material
         m_reflectance = reflectance;
         m_reflectivity = 0.0f;
         m_refractivity = 0.0f;
-        m_refractivityIndex = 0.0f;
+        m_indexOfRefraction = 0.0f;
         m_glossiness = 0.0f;
     }
 
@@ -62,9 +62,9 @@ public class Material
         return m_refractivity;
     }
 
-    public float getRefractivityIndex()
+    public float getIndexOfRefraction()
     {
-        return m_refractivityIndex;
+        return m_indexOfRefraction;
     }
 
     public float getGlossiness()
@@ -92,9 +92,9 @@ public class Material
         this.m_refractivity = m_refractivity;
     }
 
-    public void setRefractivityIndex(float m_refractivityIndex)
+    public void setIndexOfRefraction(float m_refractivityIndex)
     {
-        this.m_refractivityIndex = m_refractivityIndex;
+        this.m_indexOfRefraction = m_refractivityIndex;
     }
 
     public void setGlossiness(float m_glossiness)

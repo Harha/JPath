@@ -16,21 +16,36 @@ public class Config
 	public static final String CONFIG_PATH = "./res/jpath.cfg";
 	public static final String MODEL_PATH  = "./res/models/";
 
+	// Display width
 	public static int          window_width;
+	// Display height
 	public static int          window_height;
+	// Display pixel scale
 	public static int          window_scale;
+	// Show debug information or not at startup?
 	public static boolean      debug_enabled;
+	// Save the rendered image and close the program after max_samples_per_pixel has been reached?
 	public static boolean      saving_enabled;
+	// Set maximum recursion limit for the path tracing function
 	public static int          max_recursion;
-	public static float		   min_radiance;
+	// Set the minimum radiance required to break out from the recursive part of the path tracing function
+	public static float        min_radiance;
+	// If this limit is exceeded and saving_enabled is true, then the program is closed and display's image buffer is saved
 	public static int          max_samples_per_pixel;
+	// Maxmimum frames per second, quite weird for path tracer but whatever...
 	public static double       max_frames_per_second;
+	// Multithreading enabled?
 	public static boolean      mt_enabled;
+	// Thread amount if mt_enabled is true
 	public static int          mt_amount;
+	// Supersampling per pixel enabled?
 	public static boolean      ss_enabled;
+	// How many samples per pixel?
 	public static int          ss_amount;
+	// Amplitued of the random jitter per supersampled ray
 	public static float        ss_jitter;
 
+	// Config's global Logger object
 	public static final Logger LOG         = new Logger(Config.class.getName());
 
 	private Config()

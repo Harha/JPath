@@ -12,7 +12,6 @@ import to.us.harha.jpath.tracer.object.TracerObject;
 import to.us.harha.jpath.util.Logger;
 import to.us.harha.jpath.util.MathUtils;
 import to.us.harha.jpath.util.math.Intersection;
-import to.us.harha.jpath.util.math.Mat4f;
 import to.us.harha.jpath.util.math.Primitive;
 import to.us.harha.jpath.util.math.Ray;
 import to.us.harha.jpath.util.math.Vec3f;
@@ -66,15 +65,20 @@ public class Tracer
 	 */
 	public void update(float delta, Input input)
 	{
-		m_camera = m_scene.getCameras().get(m_camera_selected);
 		if (input.getKey(Input.KEY_PLUS))
 		{
 			if (m_camera_selected < m_cameras - 1)
+			{
 				m_camera_selected += 1;
+				m_camera = m_scene.getCameras().get(m_camera_selected);
+			}
 		} else if (input.getKey(Input.KEY_MINUS))
 		{
 			if (m_camera_selected > 0)
+			{
 				m_camera_selected -= 1;
+				m_camera = m_scene.getCameras().get(m_camera_selected);
+			}
 		}
 		m_camera.update(delta, input);
 	}
@@ -273,7 +277,7 @@ public class Tracer
 		if (M.getRefractivity() > 0.0f)
 		{
 			Ray newRay;
-			newRay = new Ray(P, Vec3f.refract(RD, N, 1.0f, M.getRefractivityIndex()));
+			newRay = new Ray(P, Vec3f.refract(RD, N, 1.0f, M.getIndexOfRefraction()));
 
 			color_final = Vec3f.add(color_final, Vec3f.scale(pathTrace(newRay, n + 1, 0.0f), M.getRefractivity()));
 		}
@@ -360,7 +364,7 @@ public class Tracer
 		// Refract
 		if (M.getRefractivity() > 0.0f)
 		{
-			color_final = Vec3f.add(color_final, Vec3f.scale(rayTrace(new Ray(iSectionFinal.getPos(), Vec3f.normalize(Vec3f.refract(RD, N, 1.0f, M.getRefractivityIndex()))), n + 1), M.getRefractivity()));
+			color_final = Vec3f.add(color_final, Vec3f.scale(rayTrace(new Ray(iSectionFinal.getPos(), Vec3f.normalize(Vec3f.refract(RD, N, 1.0f, M.getIndexOfRefraction()))), n + 1), M.getRefractivity()));
 		}
 
 		// Diffuse objects

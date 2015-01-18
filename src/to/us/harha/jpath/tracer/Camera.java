@@ -76,6 +76,13 @@ public class Camera
 		{
 			rotate(m_forward, -m_sensitivity * delta);
 		}
+
+		// Re-align the camera to follow the global YAXIS if spacebar is pressed
+		if (input.getKey(Input.KEY_SPACE))
+		{
+			stabilizeCamera();
+			recalcViewVectors();
+		}
 	}
 
 	public void move(Vec3f direction, float amount)
@@ -92,34 +99,17 @@ public class Camera
 		Vec3f.set(m_forward, new Vec3f(m_look.x, m_look.y, m_look.z));
 		Vec3f.set(m_right, new Vec3f(qRight.x, qRight.y, qRight.z));
 		recalcViewVectors();
-
-		/*
-		Quaternion q = new Quaternion().createFromAxisAngle(axis.x, axis.y, axis.z, theta);
-		Quaternion wForward = new Quaternion(0.0f, m_forward.x, m_forward.y, m_forward.z);
-		Quaternion wUp = new Quaternion(0.0f, m_up.x, m_up.y, m_up.z);
-		Quaternion wRight = new Quaternion(0.0f, m_right.x, m_right.y, m_right.z);
-		Quaternion q_inv = Quaternion.conjugate(q);
-
-		Quaternion resultForward = Quaternion.normalize(Quaternion.mul(Quaternion.mul(q, wForward), q_inv));
-		Quaternion resultUp = Quaternion.normalize(Quaternion.mul(Quaternion.mul(q, wUp), q_inv));
-		Quaternion resultRight = Quaternion.normalize(Quaternion.mul(Quaternion.mul(q, wRight), q_inv));
-
-		//m_forward = Vec3f.normalize(Quaternion.mul(q, m_forward));
-		m_forward.x = resultForward.x;
-		m_forward.y = resultForward.y;
-		m_forward.z = resultForward.z;
-		m_up.x = resultUp.x;
-		m_up.y = resultUp.y;
-		m_up.z = resultUp.z;
-		m_right.x = resultRight.x;
-		m_right.y = resultRight.y;
-		m_right.z = resultRight.z;
-		*/
 	}
 
 	public void recalcViewVectors()
 	{
 		m_up = Vec3f.normalize(Vec3f.cross(m_right, m_forward));
+		m_right = Vec3f.normalize(Vec3f.cross(m_forward, m_up));
+	}
+
+	public void stabilizeCamera()
+	{
+		m_up = YAXIS;
 		m_right = Vec3f.normalize(Vec3f.cross(m_forward, m_up));
 	}
 

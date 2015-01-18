@@ -241,7 +241,7 @@ public class Engine
 
 		Graphics g = bs.getDrawGraphics();
 		g.drawImage(m_display.getImage(), 0, 0, m_display.getWidth() * m_display.getScale(), m_display.getHeight() * m_display.getScale(), null);
-		
+
 		// Render debug information if Config.debug_enabled is true
 		if (Config.debug_enabled)
 		{
@@ -249,7 +249,7 @@ public class Engine
 			g.setFont(m_font);
 			g.drawString(m_tracer.getCurrentCamera().getLook().toString(), 16, 16);
 		}
-		
+
 		g.dispose();
 		bs.show();
 	}

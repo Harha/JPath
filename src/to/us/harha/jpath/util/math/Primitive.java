@@ -1,5 +1,9 @@
 package to.us.harha.jpath.util.math;
 
+import java.util.Arrays;
+
+import to.us.harha.jpath.Main;
+
 public class Primitive
 {
 
@@ -53,6 +57,21 @@ public class Primitive
 			m_vertices[i] = Mat4f.mul(m, m_vertices[i], 1.0f);
 		}
 		calcNormal();
+	}
+
+	public Primitive copy()
+	{
+		Vec3f[] tempVerts = new Vec3f[m_vertices.length];
+		Arrays.fill(tempVerts, new Vec3f(0.0f));
+		
+		for (int i = 0; i < tempVerts.length; i++)
+		{
+			tempVerts[i].x = m_vertices[i].x;
+			tempVerts[i].y = m_vertices[i].y;
+			tempVerts[i].z = m_vertices[i].z;
+		}
+
+		return new Primitive(tempVerts);
 	}
 
 }

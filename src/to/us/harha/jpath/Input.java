@@ -12,6 +12,7 @@ public class Input implements KeyListener
 	public static final int KEY_DOWN  = 40;
 	public static final int KEY_LEFT  = 37;
 	public static final int KEY_RIGHT = 39;
+	public static final int KEY_SPACE = 32;
 	public static final int KEY_W     = 87;
 	public static final int KEY_S     = 83;
 	public static final int KEY_A     = 65;
