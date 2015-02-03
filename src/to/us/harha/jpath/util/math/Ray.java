@@ -13,7 +13,7 @@ public class Ray
 	public Ray(Vec3f pos, Vec3f dir)
 	{
 		m_pos = pos;
-		m_dir = Vec3f.normalize(dir);
+		m_dir = dir.normalize();
 	}
 
 	public Ray()
@@ -27,8 +27,12 @@ public class Ray
 		float x_norm = (x - w * 0.5f) / w * ar;
 		float y_norm = (h * 0.5f - y) / h;
 
-		Vec3f image_point = Vec3f.add(Vec3f.add(Vec3f.scale(c.getRight(), x_norm), Vec3f.scale(c.getUp(), y_norm)), Vec3f.add(c.getPos(), c.getForward()));
-		Vec3f ray_direction = Vec3f.sub(image_point, c.getPos());
+		Vec3f forward = c.getForward();
+		Vec3f up = c.getUp();
+		Vec3f right = c.getRight();
+
+		Vec3f image_point = right.scale(x_norm).add(up.scale(y_norm)).add(c.getPos().add(forward));
+		Vec3f ray_direction = image_point.sub(c.getPos());
 
 		return new Ray(c.getPos(), ray_direction);
 	}
@@ -38,9 +42,13 @@ public class Ray
 		float x_norm = (x - w * 0.5f) / w * ar;
 		float y_norm = (h * 0.5f - y) / h;
 
-		Vec3f image_point = Vec3f.add(Vec3f.add(Vec3f.scale(c.getRight(), x_norm), Vec3f.scale(c.getUp(), y_norm)), Vec3f.add(c.getPos(), c.getForward()));
-		image_point = Vec3f.add(image_point, new Vec3f(jitter * ThreadLocalRandom.current().nextFloat() - (jitter / 2.0f), jitter * ThreadLocalRandom.current().nextFloat() - (jitter / 2.0f), 0.0f));
-		Vec3f ray_direction = Vec3f.sub(image_point, c.getPos());
+		Vec3f forward = c.getForward();
+		Vec3f up = c.getUp();
+		Vec3f right = c.getRight();
+
+		Vec3f image_point = right.scale(x_norm).add(up.scale(y_norm)).add(c.getPos().add(forward));
+		image_point = image_point.add(new Vec3f(jitter * ThreadLocalRandom.current().nextFloat() - (jitter / 2.0f), jitter * ThreadLocalRandom.current().nextFloat() - (jitter / 2.0f), 0.0f));
+		Vec3f ray_direction = image_point.sub(c.getPos());
 
 		return new Ray(c.getPos(), ray_direction);
 	}
@@ -55,14 +63,14 @@ public class Ray
 		return m_dir;
 	}
 
-	public void setPos(Vec3f m_pos)
+	public void setPos(Vec3f pos)
 	{
-		this.m_pos = m_pos;
+		m_pos.set(pos);
 	}
 
-	public void setDir(Vec3f m_dir)
+	public void setDir(Vec3f dir)
 	{
-		this.m_dir = m_dir;
+		m_dir.set(dir);
 	}
 
 }

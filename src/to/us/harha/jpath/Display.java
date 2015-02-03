@@ -70,7 +70,7 @@ public class Display extends Canvas
 		if (index < 0 || index > m_width * m_height)
 			return;
 
-		Vec3f average = v = MathUtils.clamp(Vec3f.divide(v, factor), 0.0f, 1.0f);
+		Vec3f average = v = MathUtils.clamp(v.divide(factor), 0.0f, 1.0f);
 
 		// Calculate the hexadecimal color from the vector parameters
 		long red = (long) (average.x * 255.0f);

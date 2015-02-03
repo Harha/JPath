@@ -123,7 +123,7 @@ public class Tracer
 				Ray ray = Ray.calcCameraRay(m_camera, display.getWidth(), display.getHeight(), display.getAR(), x, y);
 
 				// Do the path tracing
-				m_samples[index] = Vec3f.add(m_samples[index], pathTrace(ray, 0, 0.0f));
+				m_samples[index] = m_samples[index].add(pathTrace(ray, 0, 0.0f));
 
 				// Draw the pixel
 				display.drawPixelVec3fAveraged(index, m_samples[index], m_samples_taken.get(0));
@@ -173,14 +173,14 @@ public class Tracer
 						Ray ray = Ray.calcSupersampledCameraRay(m_camera, display.getWidth(), display.getHeight(), display.getAR(), x, y, Config.ss_jitter);
 
 						// Do the path tracing
-						sample = Vec3f.add(sample, pathTrace(ray, 0, 0.0f));
+						sample = sample.add(pathTrace(ray, 0, 0.0f));
 					}
 
 					// Get the average color of the sample
-					Vec3f sample_averaged = Vec3f.divide(sample, Config.ss_amount);
+					Vec3f sample_averaged = sample.divide(Config.ss_amount);
 
 					// Add the averaged sample to the samples
-					m_samples[index_screen] = Vec3f.add(m_samples[index_screen], sample_averaged);
+					m_samples[index_screen] = m_samples[index_screen].add(sample_averaged);
 
 				} else
 				{
@@ -188,7 +188,7 @@ public class Tracer
 					Ray ray = Ray.calcCameraRay(m_camera, display.getWidth(), display.getHeight(), display.getAR(), x, y);
 
 					// Do the path tracing
-					m_samples[index_screen] = Vec3f.add(m_samples[index_screen], pathTrace(ray, 0, 0.0f));
+					m_samples[index_screen] = m_samples[index_screen].add(pathTrace(ray, 0, 0.0f));
 				}
 
 				// Draw the pixel
@@ -250,7 +250,7 @@ public class Tracer
 		Material M = OBJECT.getMaterial();
 
 		// If the object is a light source, return it's emittance
-		if (Vec3f.length(M.getEmittance()) > 0.0f && iSectionFinal.getT() > Main.EPSILON)
+		if (M.getEmittance().length() > 0.0f && iSectionFinal.getT() > Main.EPSILON)
 			return M.getEmittance();
 
 		// Get the intersection's info
@@ -268,31 +268,31 @@ public class Tracer
 		if (M.getReflectivity() > 0.0f)
 		{
 			Ray newRay;
-			newRay = new Ray(P, Vec3f.reflect(RD, N));
+			newRay = new Ray(P, RD.reflect(N));
 
-			color_final = Vec3f.add(color_final, Vec3f.scale(pathTrace(newRay, n + 1, 0.0f), M.getReflectivity()));
+			color_final = color_final.add(pathTrace(newRay, n + 1, 0.0f).scale(M.getReflectivity()));
 		}
 
 		// If the object is refractive like glass, refract the ray
 		if (M.getRefractivity() > 0.0f)
 		{
 			Ray newRay;
-			newRay = new Ray(P, Vec3f.refract(RD, N, 1.0f, M.getIndexOfRefraction()));
+			newRay = new Ray(P, RD.refract(N, 1.0f, M.getIndexOfRefraction()));
 
-			color_final = Vec3f.add(color_final, Vec3f.scale(pathTrace(newRay, n + 1, 0.0f), M.getRefractivity()));
+			color_final = color_final.add(pathTrace(newRay, n + 1, 0.0f).scale(M.getRefractivity()));
 		}
 
 		// Calculate the diffuse lighting if reflectance is greater than 0.0
 		// NOTE: This could be improved / changed, it isn't physically correct at all atm and it's quite simple
-		if (Vec3f.length(M.getReflectance()) > 0.0f)
+		if (M.getReflectance().length() > 0.0f)
 		{
-			Ray newRay = new Ray(P, Vec3f.randomHemisphere(N));
+			Ray newRay = new Ray(P, N.randomHemisphere());
 
-			float NdotD = Math.abs(Vec3f.dot(N, newRay.getDir()));
-			Vec3f BRDF = Vec3f.scale(M.getReflectance(), 2.0f * NdotD);
-			Vec3f REFLECTED = pathTrace(newRay, n + 1, Vec3f.length(BRDF));
+			float NdotD = Math.abs(N.dot(newRay.getDir()));
+			Vec3f BRDF = M.getReflectance().scale(2.0f * NdotD);
+			Vec3f REFLECTED = pathTrace(newRay, n + 1, BRDF.length());
 
-			color_final = Vec3f.add(color_final, Vec3f.scale(BRDF, REFLECTED));
+			color_final = color_final.add(BRDF.scale(REFLECTED));
 		}
 
 		// Simple radiance clamping to avoid fireflies
@@ -341,7 +341,7 @@ public class Tracer
 		Material M = OBJECT.getMaterial();
 
 		// If the object is a light source, return it's emittance
-		if (Vec3f.length(M.getEmittance()) > 0.0f && iSectionFinal.getT() > Main.EPSILON)
+		if (M.getEmittance().length() > 0.0f && iSectionFinal.getT() > Main.EPSILON)
 			return MathUtils.clamp(M.getEmittance(), 0.0f, 1.0f);
 
 		// Get the intersection's info
@@ -358,18 +358,18 @@ public class Tracer
 		// Reflect
 		if (M.getReflectivity() > 0.0f)
 		{
-			color_final = Vec3f.add(color_final, Vec3f.scale(rayTrace(new Ray(iSectionFinal.getPos(), Vec3f.normalize(Vec3f.reflect(RD, N))), n + 1), M.getReflectivity()));
+			color_final = color_final.add(rayTrace(new Ray(iSectionFinal.getPos(), RD.reflect(N).normalize()), n + 1).scale(M.getReflectivity()));
 		}
 
 		// Refract
 		if (M.getRefractivity() > 0.0f)
 		{
-			color_final = Vec3f.add(color_final, Vec3f.scale(rayTrace(new Ray(iSectionFinal.getPos(), Vec3f.normalize(Vec3f.refract(RD, N, 1.0f, M.getIndexOfRefraction()))), n + 1), M.getRefractivity()));
+			color_final = color_final.add(rayTrace(new Ray(iSectionFinal.getPos(), RD.refract(N, 1.0f, M.getIndexOfRefraction()).normalize()), n + 1).scale(M.getRefractivity()));
 		}
 
 		// Diffuse objects
-		if (Vec3f.length(M.getReflectance()) > 0.0f)
-			color_final = Vec3f.add(color_final, Vec3f.scale(M.getReflectance(), 0.75f));
+		if (M.getReflectance().length() > 0.0f)
+			color_final = color_final.add(M.getReflectance().scale(0.75f));
 
 		// Clamp the final color
 		return MathUtils.clamp(color_final, 0.0f, 1.0f);

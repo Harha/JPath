@@ -8,23 +8,15 @@ import to.us.harha.jpath.util.math.Vec3f;
 public class Camera
 {
 
-	private static final Vec3f YAXIS = new Vec3f(0.0f, 1.0f, 0.0f);
+	private Vec3f      m_pos;
+	private Quaternion m_rot;
+	private float      m_speed;
+	private float      m_sensitivity;
 
-	private Vec3f              m_pos;
-	private Quaternion         m_look;
-	private Vec3f              m_forward;
-	private Vec3f              m_up;
-	private Vec3f              m_right;
-	private float              m_speed;
-	private float              m_sensitivity;
-
-	public Camera(Vec3f pos, Vec3f forward, Vec3f up, Vec3f right, float speed, float sensitivity)
+	public Camera(Vec3f pos, Quaternion rot, float speed, float sensitivity)
 	{
 		m_pos = pos;
-		m_look = new Quaternion(0.0f, forward.x, forward.y, forward.z);
-		m_forward = forward;
-		m_up = up;
-		m_right = right;
+		m_rot = rot;
 		m_speed = speed;
 		m_sensitivity = sensitivity;
 	}
@@ -34,83 +26,50 @@ public class Camera
 		// Camera movement
 		if (input.getKey(Input.KEY_W))
 		{
-			setPos(Vec3f.add(getPos(), Vec3f.scale(getForward(), m_speed * delta)));
+			move(getForward(), m_speed * delta);
 		} else if (input.getKey(Input.KEY_S))
 		{
-			setPos(Vec3f.add(getPos(), Vec3f.scale(getBack(), m_speed * delta)));
+			move(getForward().negate(), m_speed * delta);
 		}
-		if (input.getKey(Input.KEY_D))
+		if (input.getKey(Input.KEY_A))
 		{
-			setPos(Vec3f.add(getPos(), Vec3f.scale(getRight(), m_speed * delta)));
-		} else if (input.getKey(Input.KEY_A))
+			move(getRight().negate(), m_speed * delta);
+		} else if (input.getKey(Input.KEY_D))
 		{
-			setPos(Vec3f.add(getPos(), Vec3f.scale(getLeft(), m_speed * delta)));
+			move(getRight(), m_speed * delta);
 		}
 		if (input.getKey(Input.KEY_R))
 		{
-			setPos(Vec3f.add(getPos(), Vec3f.scale(getUp(), m_speed * delta)));
+			move(getUp(), m_speed * delta);
 		} else if (input.getKey(Input.KEY_F))
 		{
-			setPos(Vec3f.add(getPos(), Vec3f.scale(getDown(), m_speed * delta)));
+			move(getUp().negate(), m_speed * delta);
 		}
 
-		// Camera eye vector rotation
-		if (input.getKey(Input.KEY_UP))
-		{
-			rotate(m_right, m_sensitivity * delta);
-		} else if (input.getKey(Input.KEY_DOWN))
-		{
-			rotate(m_right, -m_sensitivity * delta);
-		}
+		// Camera rotation
 		if (input.getKey(Input.KEY_RIGHT))
-		{
-			rotate(m_up, -m_sensitivity * delta);
-		} else if (input.getKey(Input.KEY_LEFT))
-		{
-			rotate(m_up, m_sensitivity * delta);
-		}
+			rotate(getUp(), m_sensitivity * delta);
+		if (input.getKey(Input.KEY_LEFT))
+			rotate(getUp(), -m_sensitivity * delta);
+		if (input.getKey(Input.KEY_UP))
+			rotate(getRight(), -m_sensitivity * delta);
+		if (input.getKey(Input.KEY_DOWN))
+			rotate(getRight(), m_sensitivity * delta);
+		if (input.getKey(Input.KEY_E))
+			rotate(getForward(), m_sensitivity * delta);
 		if (input.getKey(Input.KEY_Q))
-		{
-			rotate(m_forward, m_sensitivity * delta);
-		} else if (input.getKey(Input.KEY_E))
-		{
-			rotate(m_forward, -m_sensitivity * delta);
-		}
-
-		// Re-align the camera to follow the global YAXIS if spacebar is pressed
-		if (input.getKey(Input.KEY_SPACE))
-		{
-			stabilizeCamera();
-			recalcViewVectors();
-		}
+			rotate(getForward(), -m_sensitivity * delta);
 	}
 
 	public void move(Vec3f direction, float amount)
 	{
-		m_pos = Vec3f.add(m_pos, Vec3f.scale(direction, amount));
+		m_pos.set(m_pos.add(direction.scale(amount)));
 	}
 
 	public void rotate(Vec3f axis, float theta)
 	{
-		Quaternion q = new Quaternion().createFromAxisAngle(axis.x, axis.y, axis.z, theta);
-		Quaternion q_inv = Quaternion.conjugate(q);
-		m_look = Quaternion.normalize(Quaternion.mul(Quaternion.mul(q, m_look), q_inv));
-		Quaternion qRight = Quaternion.normalize(Quaternion.mul(Quaternion.mul(q, new Quaternion(0.0f, m_right.x, m_right.y, m_right.z)), q_inv));
-		Vec3f.set(m_forward, new Vec3f(m_look.x, m_look.y, m_look.z));
-		Vec3f.set(m_right, new Vec3f(qRight.x, qRight.y, qRight.z));
-		recalcViewVectors();
-	}
-
-	public void recalcViewVectors()
-	{
-		m_up = Vec3f.normalize(Vec3f.cross(m_right, m_forward));
-		m_right = Vec3f.normalize(Vec3f.cross(m_forward, m_up));
-	}
-
-	public void stabilizeCamera()
-	{
-		m_up = YAXIS;
-		m_right = Vec3f.normalize(Vec3f.cross(m_forward, m_up));
+		Quaternion rotation = new Quaternion().createFromAxisAngle(axis.x, axis.y, axis.z, theta);
+		m_rot = rotation.mul(m_rot).normalize();
 	}
 
 	public Vec3f getPos()
@@ -118,69 +77,24 @@ public class Camera
 		return m_pos;
 	}
 
-	public Quaternion getLook()
+	public Quaternion getRot()
 	{
-		return m_look;
+		return m_rot;
 	}
 
 	public Vec3f getForward()
 	{
-		return m_forward;
-	}
-
-	public Vec3f getBack()
-	{
-		return Vec3f.negate(m_forward);
-	}
-
-	public Vec3f getUp()
-	{
-		return m_up;
-	}
-
-	public Vec3f getDown()
-	{
-		return Vec3f.negate(m_up);
+		return m_rot.getForwardVector();
 	}
 
 	public Vec3f getRight()
 	{
-		return m_right;
+		return m_rot.getRightVector();
 	}
 
-	public Vec3f getLeft()
+	public Vec3f getUp()
 	{
-		return Vec3f.negate(m_right);
-	}
-
-	public float getSpeed()
-	{
-		return m_speed;
-	}
-
-	public float getSensitivity()
-	{
-		return m_sensitivity;
-	}
-
-	public void setPos(Vec3f pos)
-	{
-		m_pos = pos;
-	}
-
-	public void setForward(Vec3f forward)
-	{
-		m_forward = forward;
-	}
-
-	public void setSpeed(float m_speed)
-	{
-		this.m_speed = m_speed;
-	}
-
-	public void setSensitivity(float m_sensitivity)
-	{
-		this.m_sensitivity = m_sensitivity;
+		return m_rot.getUpVector();
 	}
 
 }

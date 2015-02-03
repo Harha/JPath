@@ -19,20 +19,20 @@ public class Plane extends Primitive
 		Vec3f P;
 		float d, t;
 
-		P = Vec3f.sub(m_vertices[0], r.getPos());
-		d = Vec3f.dot(m_norm, r.getDir());
-		
+		P = m_vertices[0].sub(r.getPos());
+		d = m_norm.dot(r.getDir());
+
 		if (d > 0.0f)
 			return null;
-		
-		t = Vec3f.dot(P, m_norm) / d;
+
+		t = P.dot(m_norm) / d;
 
 		if (t < Main.EPSILON)
 			return null;
 
 		Intersection x = new Intersection();
-		x.setPos(Vec3f.add(Vec3f.scale(r.getDir(), t), r.getPos()));
-		x.setNorm(Vec3f.normalize(m_norm));
+		x.setPos(r.getPos().add(r.getDir().scale(t)));
+		x.setNorm(m_norm.normalize());
 		x.setT(t);
 
 		return x;

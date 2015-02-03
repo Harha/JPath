@@ -247,7 +247,11 @@ public class Engine
 		{
 			g.setColor(Color.WHITE);
 			g.setFont(m_font);
-			g.drawString(m_tracer.getCurrentCamera().getLook().toString(), 16, 16);
+			g.drawString("Camera Rotation: " + m_tracer.getCurrentCamera().getRot().toString(), 16, 16);
+			g.drawString("Camera Forward: " + m_tracer.getCurrentCamera().getRot().getForwardVector().toString(), 16, 32);
+			g.drawString("Camera Right: " + m_tracer.getCurrentCamera().getRot().getRightVector().toString(), 16, 48);
+			g.drawString("Camera Up: " + m_tracer.getCurrentCamera().getRot().getUpVector().toString(), 16, 64);
+			g.drawString("Camera Position: " + m_tracer.getCurrentCamera().getPos().toString(), 16, 80);
 		}
 
 		g.dispose();

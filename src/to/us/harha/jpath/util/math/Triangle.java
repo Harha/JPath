@@ -19,32 +19,32 @@ public class Triangle extends Primitive
 		Vec3f P, Q, T;
 		float d, inv_d, u, v, t;
 
-		P = Vec3f.cross(r.getDir(), m_edge_b);
-		d = Vec3f.dot(m_edge_a, P);
+		P = r.getDir().cross(m_edge_b);
+		d = m_edge_a.dot(P);
 
 		if (d < 0.0f)
 			return null;
 
 		inv_d = 1.0f / d;
-		T = Vec3f.sub(r.getPos(), m_vertices[0]);
-		u = Vec3f.dot(T, P) * inv_d;
+		T = r.getPos().sub(m_vertices[0]);
+		u = T.dot(P) * inv_d;
 
 		if (u < 0.0f || u > 1.0f)
 			return null;
-
-		Q = Vec3f.cross(T, m_edge_a);
-		v = Vec3f.dot(r.getDir(), Q) * inv_d;
+		
+		Q = T.cross(m_edge_a);
+		v = r.getDir().dot(Q) * inv_d;
 
 		if (v < 0.0f || u + v > 1.0f)
 			return null;
 
-		t = Vec3f.dot(m_edge_b, Q) * inv_d;
+		t = m_edge_b.dot(Q) * inv_d;
 
 		if (t < Main.EPSILON)
 			return null;
 
 		Intersection x = new Intersection();
-		x.setPos(Vec3f.add(r.getPos(), Vec3f.scale(r.getDir(), t)));
+		x.setPos(r.getPos().add(r.getDir().scale(t)));
 		x.setNorm(m_norm);
 		x.setT(t);
 
@@ -54,9 +54,9 @@ public class Triangle extends Primitive
 	@Override
 	public void calcNormal()
 	{
-		m_edge_a = Vec3f.sub(m_vertices[1], m_vertices[0]);
-		m_edge_b = Vec3f.sub(m_vertices[2], m_vertices[0]);
-		m_norm = Vec3f.normalize(Vec3f.cross(m_edge_a, m_edge_b));
+		m_edge_a = m_vertices[1].sub(m_vertices[0]);
+		m_edge_b = m_vertices[2].sub(m_vertices[0]);
+		m_norm = m_edge_a.cross(m_edge_b).normalize();
 	}
 
 }

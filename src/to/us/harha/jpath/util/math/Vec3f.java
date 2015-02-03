@@ -38,143 +38,146 @@ public class Vec3f
 
 	public boolean equals(Vec3f v)
 	{
-		if (this.x == v.x && this.y == v.y && this.z == v.z)
+		if (x == v.x && y == v.y && z == v.z)
 			return true;
 		else
 			return false;
 	}
 
-	public static void set(Vec3f v, Vec3f w)
+	public Vec3f set(Vec3f v)
 	{
-		v.x = w.x;
-		v.y = w.y;
-		v.z = w.z;
+		x = v.x;
+		y = v.y;
+		z = v.z;
+		return this;
 	}
 
-	public static Vec3f lerp(Vec3f v, Vec3f u, float lerpFactor)
+	public Vec3f set(float x, float y, float z)
 	{
-		return Vec3f.add(Vec3f.scale(Vec3f.sub(v, u), lerpFactor), u);
+		this.x = x;
+		this.y = y;
+		this.z = z;
+		return this;
 	}
 
-	public static Vec3f add(Vec3f left, Vec3f right)
+	public Vec3f add(Vec3f v)
 	{
-		return new Vec3f(left.x + right.x, left.y + right.y, left.z + right.z);
+		return new Vec3f(x + v.x, y + v.y, z + v.z);
 	}
 
-	public static Vec3f add(Vec3f left, float f)
+	public Vec3f add(float f)
 	{
-		return new Vec3f(left.x + f, left.y + f, left.z + f);
+		return new Vec3f(x + f, y + f, z + f);
 	}
 
-	public static Vec3f sub(Vec3f left, Vec3f right)
+	public Vec3f sub(Vec3f v)
 	{
-		return new Vec3f(left.x - right.x, left.y - right.y, left.z - right.z);
+		return new Vec3f(x - v.x, y - v.y, z - v.z);
 	}
 
-	public static Vec3f sub(Vec3f left, float f)
+	public Vec3f sub(float f)
 	{
-		return new Vec3f(left.x - f, left.y - f, left.z - f);
+		return new Vec3f(x - f, y - f, z - f);
 	}
 
-	public static Vec3f scale(Vec3f left, Vec3f right)
+	public Vec3f scale(Vec3f v)
 	{
-		return new Vec3f(left.x * right.x, left.y * right.y, left.z * right.z);
+		return new Vec3f(x * v.x, y * v.y, z * v.z);
 	}
 
-	public static Vec3f scale(Vec3f v, float f)
+	public Vec3f scale(float f)
 	{
-		return new Vec3f(f * v.x, f * v.y, f * v.z);
+		return new Vec3f(x * f, y * f, z * f);
 	}
 
-	public static Vec3f divide(Vec3f left, Vec3f right)
+	public Vec3f divide(Vec3f v)
 	{
-		return new Vec3f(left.x / right.x, left.y / right.y, left.z / right.z);
+		return new Vec3f(x / v.x, y / v.y, z / v.z);
 	}
 
-	public static Vec3f divide(Vec3f v, float f)
+	public Vec3f divide(float f)
 	{
-		return new Vec3f(v.x / f, v.y / f, v.z / f);
+		return new Vec3f(x / f, y / f, z / f);
 	}
 
-	public static Vec3f cross(Vec3f left, Vec3f right)
+	public Vec3f cross(Vec3f v)
 	{
-		return new Vec3f(left.y * right.z - right.y * left.z, left.z * right.x - right.z * left.x, left.x * right.y - right.x * left.y);
+		return new Vec3f(y * v.z - v.y * z, z * v.x - v.z * x, x * v.y - v.x * y);
 	}
 
-	public static float dot(Vec3f left, Vec3f right)
+	public float dot(Vec3f v)
 	{
-		return left.x * right.x + left.y * right.y + left.z * right.z;
+		return x * v.x + y * v.y + z * v.z;
 	}
 
-	public static Vec3f normalize(Vec3f v)
+	public Vec3f mul(Quaternion q)
 	{
-		float length = length(v);
-		return new Vec3f(v.x / length, v.y / length, v.z / length);
+		Quaternion q_inv = q.conjugate();
+
+		Quaternion w = q.mul(this).mul(q_inv);
+
+		return new Vec3f(w.x, w.y, w.z);
 	}
 
-	public static float length(Vec3f v)
+	public float length()
 	{
-		return (float) Math.sqrt(v.x * v.x + v.y * v.y + v.z * v.z);
+		return (float) Math.sqrt(x * x + y * y + z * z);
 	}
 
-	public static Vec3f negate(Vec3f v)
+	public Vec3f normalize()
 	{
-		return new Vec3f(-v.x, -v.y, -v.z);
+		float length = length();
+		return new Vec3f(x / length, y / length, z / length);
 	}
 
-	public static Vec3f rotate(Vec3f v, Vec3f axis, float angle)
+	public Vec3f negate()
 	{
-		float sinAngle = (float) Math.sin(-angle);
-		float cosAngle = (float) Math.cos(-angle);
-
-		return Vec3f.add(Vec3f.add(Vec3f.cross(v, Vec3f.scale(axis, sinAngle)), Vec3f.scale(v, cosAngle)), Vec3f.scale(axis, Vec3f.dot(v, Vec3f.scale(axis, 1.0f - cosAngle))));
+		return new Vec3f(-x, -y, -z);
 	}
 
-	public static Vec3f rotateTowards(Vec3f v, Vec3f w)
+	public Vec3f reflect(Vec3f N)
+	{
+		return this.sub(N.scale(N.dot(this)).scale(2.0f));
+	}
+
+	public Vec3f refract(Vec3f N, float i1, float i2)
+	{
+		float NdotI = this.dot(N), n = (NdotI > 0.0f) ? i2 / i1 : i1 / i2;
+		float cos_t = 1.0f - n * (1.0f - NdotI * NdotI);
+
+		if (cos_t < 0.0f)
+			return this.reflect(N);
+
+		return this.scale(n).add(N.scale(n * NdotI - (float) Math.sqrt(cos_t)));
+	}
+
+	public Vec3f rotateTowards(Vec3f w)
 	{
 		float dot = w.z;
 
 		// No rotation needed
 		if (dot > 0.9999f)
-			return v;
+			return new Vec3f(x, y, z);
 
 		// Mirror along the z-axis
 		if (dot < -0.9999f)
-			return new Vec3f(v.x, v.y, -v.z);
+			return new Vec3f(x, y, -z);
 
 		Vec3f up = new Vec3f(0.0f, 0.0f, 1.0f);
-		Vec3f a1 = normalize(cross(up, w));
-		Vec3f a2 = normalize(cross(a1, w));
+		Vec3f a1 = up.cross(w).normalize();
+		Vec3f a2 = a1.cross(w).normalize();
 
-		return normalize(add(add(scale(a1, v.x), scale(a2, v.y)), scale(w, v.z)));
+		return a1.scale(x).add(a2.scale(y)).add(w.scale(z)).normalize();
 	}
 
-	public static Vec3f reflect(Vec3f I, Vec3f N)
-	{
-		return sub(I, scale(scale(N, dot(N, I)), 2.0f));
-	}
-
-	public static Vec3f refract(Vec3f I, Vec3f N, float i1, float i2)
-	{
-		float NdotI = dot(I, N), n = (NdotI > 0.0f) ? i2 / i1 : i1 / i2;
-		float cos_t = 1.0f - n * (1.0f - NdotI * NdotI);
-
-		if (cos_t < 0.0f)
-			return reflect(I, N);
-
-		return add(scale(I, n), scale(N, n * NdotI - (float) Math.sqrt(cos_t)));
-	}
-	
-
-	public static Vec3f randomHemisphere(Vec3f N)
+	public Vec3f randomHemisphere()
 	{
 		float phi = ThreadLocalRandom.current().nextFloat() * (float) (2.0 * Math.PI);
 		float rq = ThreadLocalRandom.current().nextFloat();
 		float r = (float) Math.sqrt(rq);
 
-		Vec3f V = normalize(new Vec3f((float) Math.cos(phi) * r, (float) Math.sin(phi) * r, (float) Math.sqrt((1.0f - rq))));
-
-		return rotateTowards(V, N);
+		Vec3f V = new Vec3f((float) Math.cos(phi) * r, (float) Math.sin(phi) * r, (float) Math.sqrt(1.0f - rq)).normalize();
+		return V.rotateTowards(this);
 	}
 
 	public float getComponent(int i, float w)

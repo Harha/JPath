@@ -34,14 +34,12 @@ public class Quaternion
 		return this;
 	}
 
-	public Quaternion createFromAxisAngle(float x, float y, float z, float theta)
+	public Quaternion set(float w, float x, float y, float z)
 	{
-		theta = (float) Math.toRadians(theta);
-
-		this.w = (float) Math.cos(theta / 2.0);
-		this.x = x * (float) Math.sin(theta / 2.0);
-		this.y = y * (float) Math.sin(theta / 2.0);
-		this.z = z * (float) Math.sin(theta / 2.0);
+		this.w = w;
+		this.x = x;
+		this.y = y;
+		this.z = z;
 
 		return this;
 	}
@@ -60,57 +58,71 @@ public class Quaternion
 			return false;
 	}
 
-	public static Quaternion conjugate(Quaternion q)
+	public Quaternion createFromAxisAngle(float x, float y, float z, float theta)
+	{
+		theta = (float) Math.toRadians(theta);
+
+		this.w = (float) Math.cos(theta / 2.0);
+		this.x = x * (float) Math.sin(theta / 2.0);
+		this.y = y * (float) Math.sin(theta / 2.0);
+		this.z = z * (float) Math.sin(theta / 2.0);
+
+		return this;
+	}
+
+	public Quaternion mul(Quaternion q)
 	{
 		Quaternion r = new Quaternion();
 
-		r.w = q.w;
-		r.x = -q.x;
-		r.y = -q.y;
-		r.z = -q.z;
+		r.w = w * q.w - x * q.x - y * q.y - z * q.z;
+		r.x = w * q.x + x * q.w + y * q.z - z * q.y;
+		r.y = w * q.y - x * q.z + y * q.w + z * q.x;
+		r.z = w * q.z + x * q.y - y * q.x + z * q.w;
 
 		return r;
 	}
 
-	public static Quaternion mul(Quaternion q1, Quaternion q2)
+	public Quaternion mul(Vec3f v)
 	{
 		Quaternion r = new Quaternion();
 
-		r.w = q1.w * q2.w - q1.x * q2.x - q1.y * q2.y - q1.z * q2.z;
-		r.x = q1.w * q2.x + q1.x * q2.w + q1.y * q2.z - q1.z * q2.y;
-		r.y = q1.w * q2.y - q1.x * q2.z + q1.y * q2.w + q1.z * q2.x;
-		r.z = q1.w * q2.z + q1.x * q2.y - q1.y * q2.x + q1.z * q2.w;
+		r.w = -x * v.x - y * v.y - z * v.z;
+		r.x = w * v.x + y * v.z - z * v.y;
+		r.y = w * v.y + z * v.x - x * v.z;
+		r.z = w * v.z + x * v.y - y * v.x;
 
 		return r;
 	}
 
-	public static Vec3f mul(Quaternion q, Vec3f v)
+	public Quaternion conjugate()
 	{
-		Quaternion r = new Quaternion();
-		Quaternion w = new Quaternion(0.0f, v.x, v.y, v.z);
-		Quaternion q_inv = conjugate(q);
-
-		r = mul(mul(q, w), q_inv);
-
-		return new Vec3f(r.x, r.y, r.z);
+		return new Quaternion(w, -x, -y, -z);
 	}
 
-	public static Quaternion normalize(Quaternion q)
+	public Quaternion normalize()
 	{
-		Quaternion r = new Quaternion();
-
-		float length = length(q);
-		r.w = q.w / length;
-		r.x = q.x / length;
-		r.y = q.y / length;
-		r.z = q.z / length;
-
-		return r;
+		float length = length();
+		return new Quaternion(w / length, x / length, y / length, z / length);
 	}
 
-	public static float length(Quaternion q)
+	public float length()
 	{
-		return (float) Math.sqrt(q.w * q.w + q.x * q.x + q.y * q.y + q.z * q.z);
+		return (float) Math.sqrt(w * w + x * x + y * y + z * z);
+	}
+
+	public Vec3f getForwardVector()
+	{
+		return new Vec3f(0, 0, 1).mul(this);
+	}
+
+	public Vec3f getUpVector()
+	{
+		return new Vec3f(0, 1, 0).mul(this);
+	}
+
+	public Vec3f getRightVector()
+	{
+		return new Vec3f(1, 0, 0).mul(this);
 	}
 
 }

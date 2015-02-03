@@ -35,7 +35,7 @@ public class Transform
 	{
 		if (m_oldPosition == null)
 		{
-			Vec3f.set(m_oldPosition, m_position);
+			m_oldPosition.set(m_position);
 		}
 		if (m_oldRotation == null)
 		{
@@ -43,7 +43,7 @@ public class Transform
 		}
 		if (m_oldScale == null)
 		{
-			Vec3f.set(m_oldScale, m_scale);
+			m_oldScale.set(m_scale);
 		}
 	}
 
