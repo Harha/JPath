@@ -23,11 +23,11 @@ public class Scene
 		m_objects = new ArrayList<TracerObject>();
 		m_cameras = new ArrayList<Camera>();
 
-		m_cameras.add(new Camera(new Vec3f(0, 1, 0), new Quaternion(0, 0, 1, 0), 5, 64));
-		m_cameras.add(new Camera(new Vec3f(5, 1, 5), new Quaternion(0, 0.5f, 0.5f, 0), 5, 64));
+		m_cameras.add(new Camera(new Vec3f(0, 1.5f, 6), new Quaternion(0, 0, 1, 0), 5, 64));
 
 		Mesh mesh_lamp_0 = new Mesh("lamp.obj");
 		Mesh mesh_lamp_1 = new Mesh("lamp.obj");
+		Mesh mesh_cube_0 = new Mesh("cube.obj");
 
 		Material mat_white_diffuse = new Material(new Vec3f(0.0f), new Vec3f(1.0f), 0.0f, 0.0f, 0.0f, 0.0f);
 		Material mat_red_diffuse = new Material(new Vec3f(0.0f), new Vec3f(1.0f, 0.0f, 0.0f));
@@ -35,14 +35,14 @@ public class Scene
 		Material mat_blue_diffuse = new Material(new Vec3f(0.0f), new Vec3f(0.0f, 0.0f, 1.0f));
 		Material mat_yellow_diffuse = new Material(new Vec3f(0.0f), new Vec3f(1.0f, 1.0f, 0.0f));
 		Material mat_white_shiny = new Material(new Vec3f(0.0f), new Vec3f(1.0f), 0.5f, 0.0f, 0.0f, 0.0f);
-		Material mat_red_shiny = new Material(new Vec3f(0.0f), new Vec3f(1.0f, 0.0f, 0.0f), 0.5f, 0.0f, 0.0f, 0.0f);
-		Material mat_green_shiny = new Material(new Vec3f(0.0f), new Vec3f(0.0f, 1.0f, 0.0f), 0.5f, 0.0f, 0.0f, 0.0f);
-		Material mat_blue_shiny = new Material(new Vec3f(0.0f), new Vec3f(0.0f, 0.0f, 1.0f), 0.5f, 0.0f, 0.0f, 0.0f);
+		Material mat_red_shiny = new Material(new Vec3f(0.0f), new Vec3f(1.0f, 0.0f, 0.0f), 0.75f, 0.0f, 0.0f, 0.0f);
+		Material mat_green_shiny = new Material(new Vec3f(0.0f), new Vec3f(0.0f, 1.0f, 0.0f), 1.0f, 0.0f, 0.0f, 0.0f);
+		Material mat_blue_shiny = new Material(new Vec3f(0.0f), new Vec3f(0.0f, 0.0f, 1.0f), 0.9f, 0.0f, 0.0f, 0.0f);
 		Material mat_yellow_shiny = new Material(new Vec3f(0.0f), new Vec3f(1.0f, 1.0f, 0.0f), 0.5f, 0.0f, 0.0f, 0.0f);
-		Material mat_black_mirror = new Material(new Vec3f(0.0f), new Vec3f(), 1.0f, 0.0f, 0.0f, 0.0f);
-		Material mat_black_glass = new Material(new Vec3f(0.0f), new Vec3f(), 0.2f, 1.0f, 1.52f, 0.0f);
-		Material mat_white_light = new Material(new Vec3f(0.9568f, 1.0f, 0.9803f).scale(2.0f), new Vec3f());
-		Material mat_cyan_light = new Material(new Vec3f(1.0f).scale(1.5f), new Vec3f());
+		Material mat_black_mirror = new Material(new Vec3f(0.0f), new Vec3f(0.0f), 1.0f, 0.0f, 0.0f, 0.0f);
+		Material mat_black_glass_ri52 = new Material(new Vec3f(0.0f), new Vec3f(), 0.0f, 1.25f, 1.52f, 0.0f);
+		Material mat_black_glass_ri37 = new Material(new Vec3f(0.0f), new Vec3f(), 0.0f, 1.25f, 1.37f, 0.0f);
+		Material mat_white_light = new Material(new Vec3f(0.9568f, 1.0f, 0.9803f).scale(5.0f), new Vec3f());
 
 		TracerObject obj_white_diffuse = new TracerObject(mat_white_diffuse);
 		TracerObject obj_red_diffuse = new TracerObject(mat_red_diffuse);
@@ -55,32 +55,42 @@ public class Scene
 		TracerObject obj_blue_shiny = new TracerObject(mat_blue_shiny);
 		TracerObject obj_yellow_shiny = new TracerObject(mat_yellow_shiny);
 		TracerObject obj_black_mirror = new TracerObject(mat_black_mirror);
-		TracerObject obj_black_glass = new TracerObject(mat_black_glass);
+		TracerObject obj_black_glass_ri52 = new TracerObject(mat_black_glass_ri52);
+		TracerObject obj_black_glass_ri37 = new TracerObject(mat_black_glass_ri37);
 		TracerObject obj_white_light = new TracerObject(mat_white_light);
 
-		TracerObject obj_light_0 = new TracerObject(mesh_lamp_0.getPrimitives(), mat_cyan_light, new Transform(new Vec3f(0.0f, 2.0f, -5.0f), new Vec3f(90.0f, 90.0f, 0.0f), new Vec3f(1.0f)));
-		TracerObject obj_light_1 = new TracerObject(mesh_lamp_1.getPrimitives(), mat_white_light, new Transform(new Vec3f(-2.0f, 8.0f, 5.0f), new Vec3f(0.0f, 0.0f, 0.0f), new Vec3f(2.0f)));
+		TracerObject obj_light_0 = new TracerObject(mesh_lamp_0.getPrimitives(), mat_white_light, new Transform(new Vec3f(0.0f, 4.0f, 0.0f), new Vec3f(0.0f, 0.0f, 0.0f), new Vec3f(0.6f)));
+		TracerObject obj_cube_0 = new TracerObject(mesh_cube_0.getPrimitives(), mat_white_diffuse, new Transform(new Vec3f(-1.25f, 0.5f, 1.25f), new Vec3f(0.0f, 0.0f, 0.0f), new Vec3f(0.5f)));
 
-		Primitive plane_0 = new Plane(new Vec3f(0.0f, 0.0f, 0.0f), new Vec3f(0.0f, 1.0f, 0.0f));
+		Primitive plane_floor = new Plane(new Vec3f(0.0f, 0.0f, 0.0f), new Vec3f(0.0f, 1.0f, 0.0f));
+		Primitive plane_ceiling = new Plane(new Vec3f(0.0f, 4.0f, 0.0f), new Vec3f(0.0f, -1.0f, 0.0f));
+		Primitive plane_left = new Plane(new Vec3f(-2.5f, 0.0f, 0.0f), new Vec3f(1.0f, 0.0f, 0.0f));
+		Primitive plane_right = new Plane(new Vec3f(2.5f, 0.0f, 0.0f), new Vec3f(-1.0f, 0.0f, 0.0f));
+		Primitive plane_forward = new Plane(new Vec3f(0.0f, 0.0f, 5.0f), new Vec3f(0.0f, 0.0f, -1.0f));
+		Primitive plane_back = new Plane(new Vec3f(0.0f, 0.0f, -5.0f), new Vec3f(0.0f, 0.0f, 1.0f));
 
-		Primitive sphere_0 = new Sphere(new Vec3f(2.0f, 1.0f, -5.0f), 1.0f);
-		Primitive sphere_1 = new Sphere(new Vec3f(-2.0f, 1.0f, -5.0f), 1.0f);
-		Primitive sphere_2 = new Sphere(new Vec3f(2.5f, 1.0f, 3.75f), 1.0f);
-		Primitive sphere_3 = new Sphere(new Vec3f(-2.5f, 1.0f, -2.5f), 1.0f);
+		Primitive sphere_refractive_0 = new Sphere(new Vec3f(1.25f, 0.5f, 0.0f), 0.5f);
+		Primitive sphere_refractive_1 = new Sphere(new Vec3f(2.0f, 2.0f, -2.5f), 0.5f);
+		Primitive sphere_reflective = new Sphere(new Vec3f(-0.25f, 0.5f, -1.0f), 0.5f);
 
-		obj_white_diffuse.addPrimitive(plane_0);
-		obj_green_shiny.addPrimitive(sphere_0);
-		obj_blue_shiny.addPrimitive(sphere_1);
-		obj_black_glass.addPrimitive(sphere_2);
-		obj_red_shiny.addPrimitive(sphere_3);
+		obj_white_diffuse.addPrimitive(plane_floor);
+		obj_white_diffuse.addPrimitive(plane_ceiling);
+		obj_blue_diffuse.addPrimitive(plane_left);
+		obj_red_diffuse.addPrimitive(plane_right);
+		obj_white_diffuse.addPrimitive(plane_forward);
+		obj_white_diffuse.addPrimitive(plane_back);
+		obj_black_glass_ri52.addPrimitive(sphere_refractive_0);
+		obj_black_glass_ri37.addPrimitive(sphere_refractive_1);
+		obj_black_mirror.addPrimitive(sphere_reflective);
 
 		m_objects.add(obj_light_0);
-		m_objects.add(obj_light_1);
+		m_objects.add(obj_cube_0);
 		m_objects.add(obj_white_diffuse);
-		m_objects.add(obj_green_shiny);
-		m_objects.add(obj_blue_shiny);
-		m_objects.add(obj_black_glass);
-		m_objects.add(obj_red_shiny);
+		m_objects.add(obj_blue_diffuse);
+		m_objects.add(obj_red_diffuse);
+		m_objects.add(obj_black_glass_ri52);
+		m_objects.add(obj_black_glass_ri37);
+		m_objects.add(obj_black_mirror);
 	}
 
 	public ArrayList<TracerObject> getObjects()

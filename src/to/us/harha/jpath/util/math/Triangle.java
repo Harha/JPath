@@ -31,7 +31,7 @@ public class Triangle extends Primitive
 
 		if (u < 0.0f || u > 1.0f)
 			return null;
-		
+
 		Q = T.cross(m_edge_a);
 		v = r.getDir().dot(Q) * inv_d;
 

@@ -1,6 +1,7 @@
 package to.us.harha.jpath.tracer;
 
 import java.util.Arrays;
+import java.util.concurrent.ThreadLocalRandom;
 import java.util.concurrent.atomic.AtomicIntegerArray;
 
 import to.us.harha.jpath.Config;
@@ -123,7 +124,7 @@ public class Tracer
 				Ray ray = Ray.calcCameraRay(m_camera, display.getWidth(), display.getHeight(), display.getAR(), x, y);
 
 				// Do the path tracing
-				m_samples[index] = m_samples[index].add(pathTrace(ray, 0, 0.0f));
+				m_samples[index] = m_samples[index].add(pathTrace(ray, 0, 1.0f));
 
 				// Draw the pixel
 				display.drawPixelVec3fAveraged(index, m_samples[index], m_samples_taken.get(0));
@@ -173,7 +174,7 @@ public class Tracer
 						Ray ray = Ray.calcSupersampledCameraRay(m_camera, display.getWidth(), display.getHeight(), display.getAR(), x, y, Config.ss_jitter);
 
 						// Do the path tracing
-						sample = sample.add(pathTrace(ray, 0, 0.0f));
+						sample = sample.add(pathTrace(ray, 0, 1.0f));
 					}
 
 					// Get the average color of the sample
@@ -188,7 +189,7 @@ public class Tracer
 					Ray ray = Ray.calcCameraRay(m_camera, display.getWidth(), display.getHeight(), display.getAR(), x, y);
 
 					// Do the path tracing
-					m_samples[index_screen] = m_samples[index_screen].add(pathTrace(ray, 0, 0.0f));
+					m_samples[index_screen] = m_samples[index_screen].add(pathTrace(ray, 0, 1.0f));
 				}
 
 				// Draw the pixel
@@ -210,93 +211,92 @@ public class Tracer
 	 * Path tracing
 	 * n = recursion level
 	 */
-	public Vec3f pathTrace(Ray ray, int n, float radiance)
+	public Vec3f pathTrace(Ray ray, int n, float weight)
 	{
-		// Return the ambient color if maximum recursion depth or minimum radiance wasn't exceeded
-		if (n > Config.max_recursion || n > 4 && radiance < Config.min_radiance)
+		// Return if the max recursion depth is exceeded
+		if (n > Config.max_recursion)
 		{
-			return COLOR_AMBIENT;
+			return COLOR_BLACK;
 		}
 
-		// Initialize some objects and variables
-		Intersection iSection = null;
-		Intersection iSectionFinal = null;
-		TracerObject OBJECT = null;
+		// Initialize some objects and variables required
+		Intersection xInit = null;
+		Intersection xFinal = null;
+		TracerObject O = null;
 		float t_init = Float.MAX_VALUE;
 
-		// Intersect the initial ray against all scene objects and find the closest interestection to the ray origin
+		// Find the intersection
 		for (TracerObject o : m_scene.getObjects())
 		{
 			for (Primitive p : o.getPrimitives())
 			{
-				iSection = p.intersect(ray);
-				if (iSection != null)
+				xInit = p.intersect(ray);
+				if (xInit != null && xInit.getT() < t_init)
 				{
-					if (iSection.getT() < t_init)
-					{
-						iSectionFinal = iSection;
-						t_init = iSection.getT();
-						OBJECT = o;
-					}
+					xFinal = xInit;
+					t_init = xFinal.getT();
+					O = o;
 				}
 			}
 		}
 
-		// If no intersection happened at all, return black
-		if (iSectionFinal == null)
+		// Return if no intersection happened
+		if (xFinal == null)
 			return COLOR_BLACK;
 
-		// Get the object's surface material
-		Material M = OBJECT.getMaterial();
+		// If the ray hit a purely emissive surface, return the emittance
+		if (O.getMaterial().getEmittance().length() > 0.0f && xFinal.getT() > Main.EPSILON)
+			return O.getMaterial().getEmittance().scale(weight);
 
-		// If the object is a light source, return it's emittance
-		if (M.getEmittance().length() > 0.0f && iSectionFinal.getT() > Main.EPSILON)
-			return M.getEmittance();
-
-		// Get the intersection's info
-		Vec3f P = iSectionFinal.getPos();
-		Vec3f N = iSectionFinal.getNorm();
-
-		// Get the info about the ray
+		// Store the required data into temp objects
+		Material M = O.getMaterial();
+		Vec3f P = xFinal.getPos();
+		Vec3f N = xFinal.getNorm();
 		Vec3f RO = ray.getPos();
 		Vec3f RD = ray.getDir();
 
-		// Initialize the final color which will be returned in the end
-		Vec3f color_final = new Vec3f();
+		// Initialize the total color vector
+		Vec3f color = new Vec3f();
 
-		// If the object's surface is reflective, reflect the ray
-		if (M.getReflectivity() > 0.0f)
-		{
-			Ray newRay;
-			newRay = new Ray(P, RD.reflect(N));
+		// Calculate the russian roulette probabilities
+		float Kd = M.getReflectance().length();
+		float Ks = M.getReflectivity();
+		float Pp = Kd / (Kd + Ks);
+		float Pr = ThreadLocalRandom.current().nextFloat();
 
-			color_final = color_final.add(pathTrace(newRay, n + 1, 0.0f).scale(M.getReflectivity()));
-		}
-
-		// If the object is refractive like glass, refract the ray
+		// Refractive BRDF
 		if (M.getRefractivity() > 0.0f)
 		{
-			Ray newRay;
-			newRay = new Ray(P, RD.refract(N, 1.0f, M.getIndexOfRefraction()));
-
-			color_final = color_final.add(pathTrace(newRay, n + 1, 0.0f).scale(M.getRefractivity()));
+			weight *= M.getRefractivity();
+			Ray refractedRay = new Ray(P, RD.refract(N, 1.0f, M.getIndexOfRefraction()).normalize());
+			color = color.add(pathTrace(refractedRay, n + 1, weight));
 		}
 
-		// Calculate the diffuse lighting if reflectance is greater than 0.0
-		// NOTE: This could be improved / changed, it isn't physically correct at all atm and it's quite simple
-		if (M.getReflectance().length() > 0.0f)
+		if (Pr < Pp && Kd + Ks != 0.0f)
+		// Choose diffuse BRDF with probability Pp
 		{
-			Ray newRay = new Ray(P, N.randomHemisphere());
-
-			float NdotD = Math.abs(N.dot(newRay.getDir()));
-			Vec3f BRDF = M.getReflectance().scale(2.0f * NdotD);
-			Vec3f REFLECTED = pathTrace(newRay, n + 1, BRDF.length());
-
-			color_final = color_final.add(BRDF.scale(REFLECTED));
+			// Diffuse BRDF
+			if (M.getReflectance().length() > 0.0f)
+			{
+				Ray randomRay = new Ray(P, N.randomHemisphere());
+				float NdotRD = Math.abs(N.dot(randomRay.getDir()));
+				Vec3f BRDF = M.getReflectance().scale(2.0f * NdotRD);
+				Vec3f REFLECTED = pathTrace(randomRay, n + 1, weight);
+				color = color.add(BRDF.scale(REFLECTED));
+			}
+		} else
+		// Choose reflective BRDF with probability 1 - Pp
+		{
+			// Reflective BRDF
+			if (M.getReflectivity() > 0.0f)
+			{
+				weight *= M.getReflectivity();
+				Ray reflectedRay = new Ray(P, RD.reflect(N).normalize());
+				color = color.add(pathTrace(reflectedRay, n + 1, weight));
+			}
 		}
 
-		// Simple radiance clamping to avoid fireflies
-		return MathUtils.clamp(color_final, 0.0f, 10.0f);
+		return MathUtils.clamp(color, 0.0f, Config.min_radiance);
 	}
 
 	/*
