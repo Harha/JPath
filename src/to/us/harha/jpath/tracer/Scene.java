@@ -23,10 +23,9 @@ public class Scene
 		m_objects = new ArrayList<TracerObject>();
 		m_cameras = new ArrayList<Camera>();
 
-		m_cameras.add(new Camera(new Vec3f(0, 1.5f, 6), new Quaternion(0, 0, 1, 0), 5, 64));
+		m_cameras.add(new Camera(new Vec3f(0, 1.5f, 5.375f), new Quaternion(0, 0, 1, 0), 5, 64));
 
 		Mesh mesh_lamp_0 = new Mesh("lamp.obj");
-		Mesh mesh_lamp_1 = new Mesh("lamp.obj");
 		Mesh mesh_cube_0 = new Mesh("cube.obj");
 
 		Material mat_white_diffuse = new Material(new Vec3f(0.0f), new Vec3f(1.0f), 0.0f, 0.0f, 0.0f, 0.0f);
@@ -36,7 +35,7 @@ public class Scene
 		Material mat_yellow_diffuse = new Material(new Vec3f(0.0f), new Vec3f(1.0f, 1.0f, 0.0f));
 		Material mat_white_shiny = new Material(new Vec3f(0.0f), new Vec3f(1.0f), 0.5f, 0.0f, 0.0f, 0.0f);
 		Material mat_red_shiny = new Material(new Vec3f(0.0f), new Vec3f(1.0f, 0.0f, 0.0f), 0.75f, 0.0f, 0.0f, 0.0f);
-		Material mat_green_shiny = new Material(new Vec3f(0.0f), new Vec3f(0.0f, 1.0f, 0.0f), 1.0f, 0.0f, 0.0f, 0.0f);
+		Material mat_green_shiny = new Material(new Vec3f(0.0f), new Vec3f(0.0f, 1.0f, 0.0f), 0.25f, 0.0f, 0.0f, 0.0f);
 		Material mat_blue_shiny = new Material(new Vec3f(0.0f), new Vec3f(0.0f, 0.0f, 1.0f), 0.9f, 0.0f, 0.0f, 0.0f);
 		Material mat_yellow_shiny = new Material(new Vec3f(0.0f), new Vec3f(1.0f, 1.0f, 0.0f), 0.5f, 0.0f, 0.0f, 0.0f);
 		Material mat_black_mirror = new Material(new Vec3f(0.0f), new Vec3f(0.0f), 1.0f, 0.0f, 0.0f, 0.0f);
@@ -71,16 +70,20 @@ public class Scene
 
 		Primitive sphere_refractive_0 = new Sphere(new Vec3f(1.25f, 0.5f, 0.0f), 0.5f);
 		Primitive sphere_refractive_1 = new Sphere(new Vec3f(2.0f, 2.0f, -2.5f), 0.5f);
+		Primitive sphere_refractive_2 = new Sphere(new Vec3f(-1.0f, 1.375f, 1.0f), 0.375f);
 		Primitive sphere_reflective = new Sphere(new Vec3f(-0.25f, 0.5f, -1.0f), 0.5f);
+		Primitive sphere_green_shiny = new Sphere(new Vec3f(0.25f, 0.25f, 2.0f), 0.25f);
 
 		obj_white_diffuse.addPrimitive(plane_floor);
 		obj_white_diffuse.addPrimitive(plane_ceiling);
 		obj_blue_diffuse.addPrimitive(plane_left);
 		obj_red_diffuse.addPrimitive(plane_right);
+		obj_green_shiny.addPrimitive(sphere_green_shiny);
 		obj_white_diffuse.addPrimitive(plane_forward);
 		obj_white_diffuse.addPrimitive(plane_back);
 		obj_black_glass_ri52.addPrimitive(sphere_refractive_0);
 		obj_black_glass_ri37.addPrimitive(sphere_refractive_1);
+		obj_black_glass_ri52.addPrimitive(sphere_refractive_2);
 		obj_black_mirror.addPrimitive(sphere_reflective);
 
 		m_objects.add(obj_light_0);
@@ -88,6 +91,7 @@ public class Scene
 		m_objects.add(obj_white_diffuse);
 		m_objects.add(obj_blue_diffuse);
 		m_objects.add(obj_red_diffuse);
+		m_objects.add(obj_green_shiny);
 		m_objects.add(obj_black_glass_ri52);
 		m_objects.add(obj_black_glass_ri37);
 		m_objects.add(obj_black_mirror);

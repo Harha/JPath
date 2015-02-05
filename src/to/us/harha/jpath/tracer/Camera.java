@@ -12,6 +12,7 @@ public class Camera
 	private Quaternion m_rot;
 	private float      m_speed;
 	private float      m_sensitivity;
+	private boolean    m_moving;
 
 	public Camera(Vec3f pos, Quaternion rot, float speed, float sensitivity)
 	{
@@ -19,6 +20,7 @@ public class Camera
 		m_rot = rot;
 		m_speed = speed;
 		m_sensitivity = sensitivity;
+		m_moving = false;
 	}
 
 	public void update(float delta, Input input)
@@ -63,11 +65,13 @@ public class Camera
 
 	public void move(Vec3f direction, float amount)
 	{
+		m_moving = true;
 		m_pos.set(m_pos.add(direction.scale(amount)));
 	}
 
 	public void rotate(Vec3f axis, float theta)
 	{
+		m_moving = true;
 		Quaternion rotation = new Quaternion().createFromAxisAngle(axis.x, axis.y, axis.z, theta);
 		m_rot = rotation.mul(m_rot).normalize();
 	}
@@ -95,6 +99,16 @@ public class Camera
 	public Vec3f getUp()
 	{
 		return m_rot.getUpVector();
+	}
+
+	public boolean isMoving()
+	{
+		if (m_moving)
+		{
+			m_moving = false;
+			return true;
+		}
+		return false;
 	}
 
 }

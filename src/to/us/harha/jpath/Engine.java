@@ -179,6 +179,11 @@ public class Engine
 		{
 			Config.debug_enabled = (Config.debug_enabled == false) ? true : false;
 		}
+		
+		if (m_tracer.getCurrentCamera().isMoving() && m_tracer.getSamplesPerPixel(0) > 4)
+		{
+			m_tracer.clearSamples();
+		}
 	}
 
 	/*
