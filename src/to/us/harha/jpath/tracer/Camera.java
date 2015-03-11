@@ -3,21 +3,20 @@ package to.us.harha.jpath.tracer;
 import to.us.harha.jpath.Input;
 import to.us.harha.jpath.util.math.Mat4f;
 import to.us.harha.jpath.util.math.Quaternion;
+import to.us.harha.jpath.util.math.Transform;
 import to.us.harha.jpath.util.math.Vec3f;
 
 public class Camera
 {
 
-	private Vec3f      m_pos;
-	private Quaternion m_rot;
-	private float      m_speed;
-	private float      m_sensitivity;
-	private boolean    m_moving;
+	private Transform m_transform;
+	private float     m_speed;
+	private float     m_sensitivity;
+	private boolean   m_moving;
 
 	public Camera(Vec3f pos, Quaternion rot, float speed, float sensitivity)
 	{
-		m_pos = pos;
-		m_rot = rot;
+		m_transform = new Transform(pos, rot, new Vec3f(1.0f));
 		m_speed = speed;
 		m_sensitivity = sensitivity;
 		m_moving = false;
@@ -66,39 +65,39 @@ public class Camera
 	public void move(Vec3f direction, float amount)
 	{
 		m_moving = true;
-		m_pos.set(m_pos.add(direction.scale(amount)));
+		m_transform.getPos().set(m_transform.getPos().add(direction.scale(amount)));
 	}
 
 	public void rotate(Vec3f axis, float theta)
 	{
 		m_moving = true;
 		Quaternion rotation = new Quaternion().createFromAxisAngle(axis.x, axis.y, axis.z, theta);
-		m_rot = rotation.mul(m_rot).normalize();
+		m_transform.getRot().set(rotation.mul(m_transform.getRot()).normalize());
 	}
 
 	public Vec3f getPos()
 	{
-		return m_pos;
+		return m_transform.getPos();
 	}
 
 	public Quaternion getRot()
 	{
-		return m_rot;
+		return m_transform.getRot();
 	}
 
 	public Vec3f getForward()
 	{
-		return m_rot.getForwardVector();
+		return m_transform.getRot().getForwardVector();
 	}
 
 	public Vec3f getRight()
 	{
-		return m_rot.getRightVector();
+		return m_transform.getRot().getRightVector();
 	}
 
 	public Vec3f getUp()
 	{
-		return m_rot.getUpVector();
+		return m_transform.getRot().getUpVector();
 	}
 
 	public boolean isMoving()

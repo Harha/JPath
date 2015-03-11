@@ -140,40 +140,12 @@ public class Vec3f
 		return this.sub(N.scale(2.0f * N.dot(this)));
 	}
 
-	public Vec3f refract(Vec3f N, float i1, float i2)
+	public Vec3f refract(Vec3f N, float n, float NdotI, float cos_t)
 	{
-		float NdotI = this.dot(N), n, n1, n2, fresnel;
-
-		if (NdotI > 0.0f)
-		{
-			n1 = i1;
-			n2 = i2;
-			N = N.negate();
-		} else
-		{
-			n1 = i2;
-			n2 = i1;
-			NdotI = -NdotI;
-		}
-
-		n = n2 / n1;
-
-		float cos_t = n * n * (1.0f - NdotI * NdotI);
-
-		if (cos_t > 1.0f)
-		{
-			return this.add(N.scale(2.0f * NdotI));
-		}
-
-		cos_t = (float) Math.sqrt(1.0 - cos_t);
-		fresnel = ((float) Math.sqrt((n1 * NdotI - n2 * cos_t) / (n1 * NdotI + n2 * cos_t)) + (float) Math.sqrt((n2 * NdotI - n1 * cos_t) / (n2 * NdotI + n1 * cos_t))) * 0.5f;
-
-		if (ThreadLocalRandom.current().nextFloat() <= fresnel)
-		{
-			return this.add(N.scale(2.0f * NdotI));
-		}
-
-		return this.scale(n).add(N.scale(n * NdotI - cos_t));
+		if (cos_t < 1.0f)
+			return scale(n).add(N.scale(n * NdotI - cos_t));
+		else
+			return reflect(N);
 	}
 
 	public Vec3f rotateTowards(Vec3f w)

@@ -2,6 +2,8 @@ package to.us.harha.jpath;
 
 import java.awt.Canvas;
 import java.awt.Dimension;
+import java.awt.Graphics;
+import java.awt.image.BufferStrategy;
 import java.awt.image.BufferedImage;
 import java.awt.image.DataBufferInt;
 import java.io.FileOutputStream;
@@ -26,6 +28,7 @@ public class Display extends Canvas
 	private BufferedImage     m_image;
 	private Dimension         m_dimension;
 	private JFrame            m_jframe;
+	private BufferStrategy    m_bufferstrategy;
 
 	public Display(int width, int height, int scale, String title)
 	{
@@ -42,6 +45,7 @@ public class Display extends Canvas
 		{
 			m_image = new BufferedImage(m_width, m_height, BufferedImage.TYPE_INT_RGB);
 			m_pixels = ((DataBufferInt) m_image.getRaster().getDataBuffer()).getData();
+			clear();
 		}
 
 		// Create the jframe
@@ -58,11 +62,46 @@ public class Display extends Canvas
 			m_jframe.setLocationRelativeTo(null);
 			m_jframe.setVisible(true);
 		}
+
+		// Create a buffer strategy using triplebuffering
+		if (m_bufferstrategy == null)
+		{
+			createBufferStrategy(3);
+			m_bufferstrategy = getBufferStrategy();
+		}
+	}
+
+	public void render()
+	{
+		if (m_bufferstrategy != null)
+		{
+			Graphics g = m_bufferstrategy.getDrawGraphics();
+			g.drawImage(m_image, 0, 0, m_width * m_scale, m_height * m_scale, null);
+			g.dispose();
+			m_bufferstrategy.show();
+		}
 	}
 
 	public void clear()
 	{
 		Arrays.fill(m_pixels, 0x000000);
+	}
+
+	public void drawPixelVec3f(int x, int y, Vec3f v)
+	{
+		if (x < 0 || x > m_width || y < 0 || y > m_height)
+			return;
+
+		v = MathUtils.clamp(v, 0.0f, 1.0f);
+
+		int index = x + y * m_width;
+
+		long red = (long) (v.x * 255.0f);
+		long green = (long) (v.y * 255.0f);
+		long blue = (long) (v.z * 255.0f);
+		long hex_value = ((red << 16) | (green << 8) | blue);
+
+		m_pixels[index] = (int) hex_value;
 	}
 
 	public void drawPixelVec3fAveraged(int index, Vec3f v, int factor)
@@ -72,27 +111,9 @@ public class Display extends Canvas
 
 		Vec3f average = v = MathUtils.clamp(v.divide(factor), 0.0f, 1.0f);
 
-		// Calculate the hexadecimal color from the vector parameters
 		long red = (long) (average.x * 255.0f);
 		long green = (long) (average.y * 255.0f);
 		long blue = (long) (average.z * 255.0f);
-		long hex_value = ((red << 16) | (green << 8) | blue);
-
-		m_pixels[index] = (int) hex_value;
-	}
-
-	public void drawPixelVec3f(int x, int y, Vec3f v)
-	{
-		if (x < 0 || x > m_width || y < 0 || y > m_height)
-			return;
-
-		// Get the 2D index in the 1D array
-		int index = x + y * m_width;
-
-		// Calculate the hexadecimal color from the vector parameters
-		long red = (long) (v.x * 255.0f);
-		long green = (long) (v.y * 255.0f);
-		long blue = (long) (v.z * 255.0f);
 		long hex_value = ((red << 16) | (green << 8) | blue);
 
 		m_pixels[index] = (int) hex_value;
@@ -102,6 +123,7 @@ public class Display extends Canvas
 	{
 		if (x < 0 || x >= m_width || y < 0 || y >= m_height)
 			return;
+
 		m_pixels[x + y * m_width] = color;
 	}
 
@@ -114,7 +136,6 @@ public class Display extends Canvas
 			output = new FileOutputStream(filePath);
 			BufferedImage bi = getImage();
 			ImageIO.write(bi, "png", output);
-			Main.LOG.printMsg("Succesfully saved an image to " + filePath);
 		} catch (IOException e)
 		{
 			e.printStackTrace();
@@ -164,7 +185,7 @@ public class Display extends Canvas
 
 	public void setTitle(String title)
 	{
-		m_jframe.setTitle(m_title + " " + title);
+		m_jframe.setTitle(m_title + " | " + title);
 	}
 
 	public void setWidth(int m_width)

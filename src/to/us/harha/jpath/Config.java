@@ -28,12 +28,8 @@ public class Config
 	public static boolean      saving_enabled;
 	// Set maximum recursion limit for the path tracing function
 	public static int          max_recursion;
-	// Set the minimum radiance required to break out from the recursive part of the path tracing function
-	public static float        min_radiance;
 	// If this limit is exceeded and saving_enabled is true, then the program is closed and display's image buffer is saved
 	public static int          max_samples_per_pixel;
-	// Maxmimum frames per second, quite weird for path tracer but whatever...
-	public static double       max_frames_per_second;
 	// Multithreading enabled?
 	public static boolean      mt_enabled;
 	// Thread amount if mt_enabled is true
@@ -81,9 +77,7 @@ public class Config
 			p.setProperty("debug_enabled", "true");
 			p.setProperty("saving_enabled", "false");
 			p.setProperty("max_recursion", "4");
-			p.setProperty("min_radiance", "1e-2");
 			p.setProperty("max_samples_per_pixel", "1000");
-			p.setProperty("max_frames_per_second", "1000.0");
 			p.setProperty("mt_enabled", "true");
 			p.setProperty("mt_amount", "-1");
 			p.setProperty("ss_enabled", "true");
@@ -122,9 +116,7 @@ public class Config
 			debug_enabled = Boolean.valueOf(p.getProperty("debug_enabled"));
 			saving_enabled = Boolean.valueOf(p.getProperty("saving_enabled"));
 			max_recursion = Integer.valueOf(p.getProperty("max_recursion"));
-			min_radiance = Float.valueOf(p.getProperty("min_radiance"));
 			max_samples_per_pixel = Integer.valueOf(p.getProperty("max_samples_per_pixel"));
-			max_frames_per_second = Double.valueOf(p.getProperty("max_frames_per_second"));
 			mt_enabled = Boolean.valueOf(p.getProperty("mt_enabled"));
 			mt_amount = Integer.valueOf(p.getProperty("mt_amount"));
 			ss_enabled = Boolean.valueOf(p.getProperty("ss_enabled"));

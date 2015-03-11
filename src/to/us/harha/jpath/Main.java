@@ -8,7 +8,7 @@ public class Main
 {
 
 	// Program window's title String
-	public static final String TITLE   = "JPath | 1 = RT, 2 = PT, WASDRF = Move, Arrows = Rotate";
+	public static final String TITLE   = "JPath";
 
 	// Main EPSILON value, used for floating point value comparison
 	public static final float  EPSILON = 1e-3f;

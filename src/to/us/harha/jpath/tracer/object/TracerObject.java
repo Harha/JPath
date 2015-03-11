@@ -9,13 +9,13 @@ import to.us.harha.jpath.util.math.Vec3f;
 
 public class TracerObject
 {
-	private ArrayList<Primitive> m_primitives;
-	private Material             m_material;
-	private Transform            m_transform;
+	private Mesh      m_mesh;
+	private Material  m_material;
+	private Transform m_transform;
 
-	public TracerObject(ArrayList<Primitive> primitives, Material material, Transform transform)
+	public TracerObject(Mesh mesh, Material material, Transform transform)
 	{
-		m_primitives = primitives;
+		m_mesh = mesh;
 		m_material = material;
 		m_transform = transform;
 		updateTransform();
@@ -23,21 +23,21 @@ public class TracerObject
 
 	public TracerObject(Material material)
 	{
-		m_primitives = new ArrayList<Primitive>();
+		m_mesh = new Mesh();
 		m_material = material;
 		m_transform = new Transform();
 	}
 
 	public TracerObject()
 	{
-		m_primitives = new ArrayList<Primitive>();
+		m_mesh = new Mesh();
 		m_material = null;
 		m_transform = new Transform();
 	}
 
 	public void updateTransform()
 	{
-		for (Primitive p : m_primitives)
+		for (Primitive p : m_mesh.getPrimitives())
 		{
 			p.mulVertices(m_transform.getTransformation());
 		}
@@ -45,12 +45,12 @@ public class TracerObject
 
 	public ArrayList<Primitive> getPrimitives()
 	{
-		return m_primitives;
+		return m_mesh.getPrimitives();
 	}
 
 	public Primitive getPrimitive(int index)
 	{
-		return m_primitives.get(index);
+		return m_mesh.getPrimitives().get(index);
 	}
 
 	public Material getMaterial()
@@ -60,12 +60,12 @@ public class TracerObject
 
 	public void addPrimitive(Primitive p)
 	{
-		m_primitives.add(p);
+		m_mesh.getPrimitives().add(p);
 	}
 
 	public void addPrimitives(ArrayList<Primitive> m_primitives)
 	{
-		this.m_primitives.addAll(m_primitives);
+		this.m_mesh.getPrimitives().addAll(m_primitives);
 	}
 
 	public void setMaterial(Material m_material)

@@ -32,9 +32,8 @@ public class Tracer
 	private AtomicIntegerArray m_samples_taken;
 
 	// Static constant objects to minimize object creation during tracing
-	private static final Vec3f COLOR_BLACK   = new Vec3f();
-	private static final Vec3f COLOR_AMBIENT = new Vec3f(0.05f);
-	private static final Vec3f COLOR_DEBUG   = new Vec3f(1.0f, 0.0f, 1.0f);
+	private static final Vec3f COLOR_BLACK = new Vec3f();
+	private static final Vec3f COLOR_DEBUG = new Vec3f(1.0f, 0.0f, 1.0f);
 
 	public Tracer(int thread_amount, int resolution)
 	{
@@ -43,10 +42,7 @@ public class Tracer
 		m_samples = new Vec3f[resolution];
 
 		// Create the per pixel sample counter for each segment on the screen
-		if (m_thread_amount > 1)
-			m_samples_taken = new AtomicIntegerArray((m_thread_amount / 2) * (m_thread_amount / 2));
-		else
-			m_samples_taken = new AtomicIntegerArray(1);
+		m_samples_taken = new AtomicIntegerArray((m_thread_amount) * (m_thread_amount));
 
 		// Initially clear all samples
 		clearSamples();
@@ -85,73 +81,16 @@ public class Tracer
 	}
 
 	/*
-	 * Render the whole screen at once using simple raytracing
-	 * For single-threaded rendering
-	 */
-	public void renderRayTraced(Display display)
-	{
-		for (int y = 0; y < display.getHeight(); y++)
-		{
-			for (int x = 0; x < display.getWidth(); x++)
-			{
-				// Calculate the primary ray
-				Ray ray = Ray.calcCameraRay(m_camera, display.getWidth(), display.getHeight(), display.getAR(), x, y);
-
-				// Do the ray tracing
-				Vec3f color_raytraced = rayTrace(ray, 0);
-
-				// Draw the pixel
-				display.drawPixelVec3f(x, y, color_raytraced);
-			}
-		}
-	}
-
-	/*
-	 * Render the whole screen at once
-	 * For single-threaded rendering
-	 */
-	public void renderSingleThreaded(Display display)
-	{
-		incrementSampleCounter(0);
-
-		for (int y = 0; y < display.getHeight(); y++)
-		{
-			for (int x = 0; x < display.getWidth(); x++)
-			{
-				int index = x + y * display.getWidth();
-
-				// Calculate the primary ray
-				Ray ray = Ray.calcCameraRay(m_camera, display.getWidth(), display.getHeight(), display.getAR(), x, y);
-
-				// Do the path tracing
-				m_samples[index] = m_samples[index].add(pathTrace(ray, 0, 1.0f));
-
-				// Draw the pixel
-				display.drawPixelVec3fAveraged(index, m_samples[index], m_samples_taken.get(0));
-			}
-		}
-	}
-
-	/*
 	 * Render a chosen portion of the screen @ t1, t2
 	 * The size of one portion is (m_cpu_cores)^2
 	 * For multi-threaded rendering
 	 */
-	public void renderMultiThreaded(Display display, int t1, int t2)
+	public void render(Display display, int t1, int t2)
 	{
-		int t = t1 + t2 * (m_thread_amount / 2);
+		int t = t1 + t2 * (m_thread_amount);
 
-		incrementSampleCounter(t);
-
-		if (t1 >= (m_thread_amount / 2))
-			t1 = (m_thread_amount / 2) - 1;
-		if (t2 >= (m_thread_amount / 2))
-			t2 = (m_thread_amount / 2) - 1;
-
-		float width = display.getWidth();
-		float height = display.getHeight();
-		int width_portion = display.getWidth() / (m_thread_amount / 2);
-		int height_portion = display.getHeight() / (m_thread_amount / 2);
+		int width_portion = display.getWidth() / m_thread_amount;
+		int height_portion = display.getHeight() / m_thread_amount;
 
 		for (int y = height_portion * t2; y < (height_portion * t2) + height_portion; y++)
 		{
@@ -160,7 +99,6 @@ public class Tracer
 				int xx = x - width_portion * t1;
 				int yy = y - height_portion * t2;
 				int index_screen = x + y * display.getWidth();
-				int index_sample = xx + yy * width_portion;
 
 				// Supersample each pixel if demanded
 				if (Config.ss_enabled)
@@ -205,6 +143,7 @@ public class Tracer
 				}
 			}
 		}
+		incrementSampleCounter(t);
 	}
 
 	/*
@@ -268,7 +207,43 @@ public class Tracer
 		if (M.getRefractivity() > 0.0f)
 		{
 			weight *= M.getRefractivity();
-			Ray refractedRay = new Ray(P, RD.refract(N, 1.0f, M.getIndexOfRefraction()).normalize());
+
+			// Initialize some values
+			float NdotI = RD.dot(N), IOR, n1, n2, fresnel;
+			Ray refractedRay;
+
+			// Are we going into a medium or getting out from it?
+			if (NdotI > 0.0f)
+			{
+				n1 = ray.getCurrentMediumIOR();
+				n2 = M.getIndexOfRefraction();
+				N = N.negate();
+			} else
+			{
+				n1 = M.getIndexOfRefraction();
+				n2 = ray.getCurrentMediumIOR();
+				NdotI = -NdotI;
+			}
+
+			// Calculate the final index of refraction at the incident
+			IOR = n2 / n1;
+
+			// Calculate the cosine term
+			float cos_t = IOR * IOR * (1.0f - NdotI * NdotI);
+
+			cos_t = (float) Math.sqrt(1.0 - cos_t);
+			fresnel = ((float) Math.sqrt((n1 * NdotI - n2 * cos_t) / (n1 * NdotI + n2 * cos_t)) + (float) Math.sqrt((n2 * NdotI - n1 * cos_t) / (n2 * NdotI + n1 * cos_t))) * 0.5f;
+
+			// A little bit of russian roulette to decide if the ray reflects or refracts, depends on the fresnel term that's in the range of 0..1
+			if (ThreadLocalRandom.current().nextFloat() <= fresnel)
+			{
+				refractedRay = new Ray(P, RD.reflect(N).normalize());
+			} else
+			{
+				refractedRay = new Ray(P, RD.refract(N, IOR, NdotI, cos_t).normalize());
+				//refractedRay.setCurrentMediumIOR(IOR);
+			}
+
 			color = color.add(pathTrace(refractedRay, n + 1, weight));
 		}
 
@@ -280,7 +255,7 @@ public class Tracer
 			{
 				Ray randomRay = new Ray(P, N.randomHemisphere());
 				float NdotRD = Math.abs(N.dot(randomRay.getDir()));
-				Vec3f BRDF = M.getReflectance().scale(2.0f * NdotRD);
+				Vec3f BRDF = M.getReflectance().scale((float) (1.0 / Math.PI) * 2.0f * NdotRD);
 				Vec3f REFLECTED = pathTrace(randomRay, n + 1, weight);
 				color = color.add(BRDF.scale(REFLECTED));
 			}
@@ -296,92 +271,7 @@ public class Tracer
 			}
 		}
 
-		return MathUtils.clamp(color, 0.0f, Config.min_radiance);
-	}
-
-	/*
-	 * Simple raytracing, no shading or anything
-	 * Just for navigation, it's still slow but at least "real-time"
-	 */
-	public Vec3f rayTrace(Ray ray, int n)
-	{
-		// Return black if recursion goes over 3 iterations
-		if (n > 3)
-			return COLOR_BLACK;
-
-		// Initialize some objects and variables
-		Intersection iSection = null;
-		Intersection iSectionFinal = null;
-		TracerObject OBJECT = null;
-		float t_init = Float.MAX_VALUE;
-
-		// Intersect the initial ray against all scene objects and find the closest interestection to the ray origin
-		for (TracerObject o : m_scene.getObjects())
-		{
-			for (Primitive p : o.getPrimitives())
-			{
-				iSection = p.intersect(ray);
-				if (iSection != null)
-				{
-					if (iSection.getT() < t_init)
-					{
-						iSectionFinal = iSection;
-						t_init = iSection.getT();
-						OBJECT = o;
-					}
-				}
-			}
-		}
-
-		// If no intersection happened at all, return black
-		if (iSectionFinal == null)
-			return COLOR_BLACK;
-
-		// Get the object's surface material
-		Material M = OBJECT.getMaterial();
-
-		// If the object is a light source, return it's emittance
-		if (M.getEmittance().length() > 0.0f && iSectionFinal.getT() > Main.EPSILON)
-			return MathUtils.clamp(M.getEmittance(), 0.0f, 1.0f);
-
-		// Get the intersection's info
-		Vec3f P = iSectionFinal.getPos();
-		Vec3f N = iSectionFinal.getNorm();
-
-		// Get the info about the ray
-		Vec3f RO = ray.getPos();
-		Vec3f RD = ray.getDir();
-
-		// Initialize the final color which will be returned in the end
-		Vec3f color_final = new Vec3f();
-
-		// Reflect
-		if (M.getReflectivity() > 0.0f)
-		{
-			color_final = color_final.add(rayTrace(new Ray(iSectionFinal.getPos(), RD.reflect(N).normalize()), n + 1).scale(M.getReflectivity()));
-		}
-
-		// Refract
-		if (M.getRefractivity() > 0.0f)
-		{
-			color_final = color_final.add(rayTrace(new Ray(iSectionFinal.getPos(), RD.refract(N, 1.0f, M.getIndexOfRefraction()).normalize()), n + 1).scale(M.getRefractivity()));
-		}
-
-		// Diffuse objects
-		if (M.getReflectance().length() > 0.0f)
-			color_final = color_final.add(M.getReflectance().scale(0.75f));
-
-		// Clamp the final color
-		return MathUtils.clamp(color_final, 0.0f, 1.0f);
-	}
-
-	/*
-	 * Set the camera @ index to the primary camera
-	 */
-	public void setCamera(int index)
-	{
-		if (m_scene.getCameras().get(index) != null)
-			m_camera = m_scene.getCameras().get(index);
+		return color;
 	}
 
 	/*
@@ -391,7 +281,16 @@ public class Tracer
 	{
 		Arrays.fill(m_samples, new Vec3f());
 		for (int i = 0; i < m_samples_taken.length(); i++)
-			m_samples_taken.set(i, 0);
+			m_samples_taken.set(i, 1);
+	}
+
+	/*
+	 * Set the camera @ index to the primary camera
+	 */
+	public void setCamera(int index)
+	{
+		if (m_scene.getCameras().get(index) != null)
+			m_camera = m_scene.getCameras().get(index);
 	}
 
 	/*

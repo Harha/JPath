@@ -22,7 +22,7 @@ public class Triangle extends Primitive
 		P = r.getDir().cross(m_edge_b);
 		d = m_edge_a.dot(P);
 
-		if (d < 0.0f)
+		if (d > -Main.EPSILON && d < Main.EPSILON)
 			return null;
 
 		inv_d = 1.0f / d;

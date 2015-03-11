@@ -70,6 +70,16 @@ public class Quaternion
 		return this;
 	}
 
+	public Quaternion initIdentity()
+	{
+		this.w = 0.0f;
+		this.x = 0.0f;
+		this.y = 1.0f;
+		this.z = 0.0f;
+
+		return this;
+	}
+
 	public Quaternion mul(Quaternion q)
 	{
 		Quaternion r = new Quaternion();

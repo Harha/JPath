@@ -9,17 +9,20 @@ public class Ray
 
 	private Vec3f m_pos;
 	private Vec3f m_dir;
+	private float m_currentMediumIOR;
 
 	public Ray(Vec3f pos, Vec3f dir)
 	{
 		m_pos = pos;
 		m_dir = dir.normalize();
+		m_currentMediumIOR = 1.0f;
 	}
 
 	public Ray()
 	{
 		m_pos = new Vec3f();
 		m_dir = new Vec3f();
+		m_currentMediumIOR = 1.0f;
 	}
 
 	public static Ray calcCameraRay(Camera c, int w, int h, float ar, int x, int y)
@@ -63,6 +66,11 @@ public class Ray
 		return m_dir;
 	}
 
+	public float getCurrentMediumIOR()
+	{
+		return m_currentMediumIOR;
+	}
+
 	public void setPos(Vec3f pos)
 	{
 		m_pos.set(pos);
@@ -71,6 +79,11 @@ public class Ray
 	public void setDir(Vec3f dir)
 	{
 		m_dir.set(dir);
+	}
+
+	public void setCurrentMediumIOR(float IOR)
+	{
+		m_currentMediumIOR = IOR;
 	}
 
 }

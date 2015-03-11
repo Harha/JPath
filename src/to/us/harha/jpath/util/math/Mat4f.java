@@ -39,6 +39,22 @@ public class Mat4f
 		m[3][0] = 0;		m[3][1] = 0;		m[3][2] = 0;		m[3][3] = 1;
 	}
 	
+	public void initRotation(Quaternion q)
+	{
+		Vec3f f = q.getForwardVector();
+		Vec3f u = q.getUpVector();
+		Vec3f r = q.getRightVector();
+		
+		m[0][0] = r.x;		m[0][1] = r.y;		m[0][2] = r.z;		m[0][3] = 0;
+		m[1][0] = u.x;		m[1][1] = u.y;		m[1][2] = u.z;		m[1][3] = 0;
+		m[2][0] = f.x;		m[2][1] = f.y;		m[2][2] = f.z;		m[2][3] = 0;
+		m[3][0] = 0;		m[3][1] = 0;		m[3][2] = 0;		m[3][3] = 1;
+	}
+	
+	/*
+	 * Ugly euler angles, I hate them.
+	 * Luckily all my rotations are now using Quaternions, which are beautiful and elegant.
+	 */
 	public void initRotation(float x, float y, float z)
 	{
 		Mat4f Mx = new Mat4f();

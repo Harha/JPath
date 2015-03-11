@@ -22,6 +22,11 @@ public class Mesh
 		loadMeshFromObjFile(fileName);
 	}
 
+	public Mesh()
+	{
+		m_primitives = new ArrayList<Primitive>();
+	}
+
 	private void loadMeshFromObjFile(String fileName)
 	{
 		String[] splitArray = fileName.split("\\.");
